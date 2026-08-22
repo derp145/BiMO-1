@@ -18,12 +18,14 @@ class AppScaffold extends StatefulWidget {
 
 class _AppScaffoldState extends State<AppScaffold> {
   bool _isSidebarExpanded = true;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     return Scaffold(
+       key: _scaffoldKey,
       body: Row(
         children: [
           // Sidebar
@@ -41,7 +43,13 @@ class _AppScaffoldState extends State<AppScaffold> {
           Expanded(
             child: Column(
               children: [
-                AppHeader(title: widget.title),
+               AppHeader(
+  title: widget.title,
+  showMenuButton: !isDesktop,
+  onMenuPressed: !isDesktop
+      ? () => _scaffoldKey.currentState?.openDrawer()
+      : null,
+),
                 Expanded(
                   child: SelectionArea(
                     child: widget.body,

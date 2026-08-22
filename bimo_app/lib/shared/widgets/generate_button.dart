@@ -10,7 +10,7 @@ class GenerateButton extends StatelessWidget {
     Key? key,
     this.disabled = false,
     required this.onPressed,
-    this.label = 'Generate Project BOM & Architecture',
+    this.label = 'Generate Bill of Materials & Architecture',
   }) : super(key: key);
 
   @override

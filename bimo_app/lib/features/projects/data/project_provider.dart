@@ -3,6 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/models.dart';
 import '../../../mock/mock_data.dart';
 
+const int trashRetentionDays = 15;
+const Duration trashRetentionDuration = Duration(days: trashRetentionDays);
+
+List<ProjectModel> _removeExpiredTrash(
+  List<ProjectModel> projects,
+  DateTime now,
+) {
+  return projects.where((project) {
+    final deletedAt = project.deletedAt;
+    if (deletedAt == null) return true;
+
+    final expiresAt = deletedAt.add(trashRetentionDuration);
+    return now.isBefore(expiresAt);
+  }).toList();
+}
+
 class ProjectsState {
   final List<ProjectModel> projects;
   final String activeTab; // 'engineering', 'electronics', 'trash'
@@ -39,21 +55,36 @@ class ProjectsState {
     if (activeTab == 'electronics') {
       return activeItems.where((p) => p.category == 'electronics').toList();
     }
-    return activeItems.where((p) => p.category == 'engineering' || p.category == 'hardware').toList();
+    return activeItems
+        .where((p) => p.category == 'engineering' || p.category == 'hardware')
+        .toList();
   }
 
-  int get engineeringCount =>
-      projects.where((p) => p.deletedAt == null && (p.category == 'engineering' || p.category == 'hardware')).length;
+  int get engineeringCount => projects
+      .where(
+        (p) =>
+            p.deletedAt == null &&
+            (p.category == 'engineering' || p.category == 'hardware'),
+      )
+      .length;
 
-  int get electronicsCount =>
-      projects.where((p) => p.deletedAt == null && p.category == 'electronics').length;
+  int get electronicsCount => projects
+      .where((p) => p.deletedAt == null && p.category == 'electronics')
+      .length;
 
   int get trashCount => projects.where((p) => p.deletedAt != null).length;
 }
 
 class ProjectsNotifier extends StateNotifier<ProjectsState> {
   ProjectsNotifier()
-      : super(ProjectsState(projects: MockData.getInitialProjects()));
+    : super(
+        ProjectsState(
+          projects: _removeExpiredTrash(
+            MockData.getInitialProjects(),
+            DateTime.now(),
+          ),
+        ),
+      );
 
   void setActiveTab(String tab) {
     state = state.copyWith(activeTab: tab);
@@ -67,13 +98,22 @@ class ProjectsNotifier extends StateNotifier<ProjectsState> {
     state = state.copyWith(projects: [newProject, ...state.projects]);
   }
 
+  void cleanupExpiredTrash() {
+    final cleanedProjects = _removeExpiredTrash(state.projects, DateTime.now());
+    if (cleanedProjects.length == state.projects.length) return;
+
+    state = state.copyWith(projects: cleanedProjects);
+  }
+
   void updateProject(ProjectModel updated) {
     final updatedList = state.projects.map((p) {
       return p.id == updated.id ? updated : p;
     }).toList();
     state = state.copyWith(
       projects: updatedList,
-      activeProject: state.activeProject?.id == updated.id ? updated : state.activeProject,
+      activeProject: state.activeProject?.id == updated.id
+          ? updated
+          : state.activeProject,
     );
   }
 
@@ -85,7 +125,10 @@ class ProjectsNotifier extends StateNotifier<ProjectsState> {
           deletedAt: now,
           auditLog: [
             ...p.auditLog,
-            AuditLogEntry(action: 'Moved project to trash archive', timestamp: 'Just now')
+            AuditLogEntry(
+              action: 'Moved project to trash archive',
+              timestamp: 'Just now',
+            ),
           ],
         );
       }
@@ -97,10 +140,15 @@ class ProjectsNotifier extends StateNotifier<ProjectsState> {
   void restoreProject(String id) {
     final updatedList = state.projects.map((p) {
       if (p.id == id) {
-        final restored = p.copyWith(auditLog: [
-          ...p.auditLog,
-          AuditLogEntry(action: 'Restored project from trash archive', timestamp: 'Just now')
-        ]);
+        final restored = p.copyWith(
+          auditLog: [
+            ...p.auditLog,
+            AuditLogEntry(
+              action: 'Restored project from trash archive',
+              timestamp: 'Just now',
+            ),
+          ],
+        );
         restored.deletedAt = null;
         return restored;
       }
@@ -131,7 +179,9 @@ class ProjectsNotifier extends StateNotifier<ProjectsState> {
       auditLog: [
         ...proj.auditLog,
         AuditLogEntry(
-            action: 'Updated ${comp.local} quantity to $newQty', timestamp: 'Just now')
+          action: 'Updated ${comp.local} quantity to $newQty',
+          timestamp: 'Just now',
+        ),
       ],
     );
     updateProject(updatedProj);
@@ -142,23 +192,33 @@ class ProjectsNotifier extends StateNotifier<ProjectsState> {
     if (componentIndex < 0 || componentIndex >= proj.components.length) return;
 
     final compName = proj.components[componentIndex].local;
-    final updatedComps = List<BOMComponent>.from(proj.components)..removeAt(componentIndex);
+    final updatedComps = List<BOMComponent>.from(proj.components)
+      ..removeAt(componentIndex);
 
     final updatedProj = proj.copyWith(
       components: updatedComps,
       auditLog: [
         ...proj.auditLog,
-        AuditLogEntry(action: 'Removed $compName from BOM list', timestamp: 'Just now')
+        AuditLogEntry(
+          action: 'Removed $compName from BOM list',
+          timestamp: 'Just now',
+        ),
       ],
     );
     updateProject(updatedProj);
   }
 
-  void toggleBoughtComponent(String projectId, int componentIndex, bool isBought) {
+  void toggleBoughtComponent(
+    String projectId,
+    int componentIndex,
+    bool isBought,
+  ) {
     final proj = state.projects.firstWhere((p) => p.id == projectId);
     if (componentIndex < 0 || componentIndex >= proj.components.length) return;
 
-    final updatedComp = proj.components[componentIndex].copyWith(isBought: isBought);
+    final updatedComp = proj.components[componentIndex].copyWith(
+      isBought: isBought,
+    );
     final updatedComps = List<BOMComponent>.from(proj.components);
     updatedComps[componentIndex] = updatedComp;
 
@@ -176,9 +236,27 @@ class ProjectsNotifier extends StateNotifier<ProjectsState> {
       selectedOptionIndex: 1,
       isCustom: true,
       options: [
-        ComponentOption(type: 'Premium Selection', seller: 'DigiSupply', stock: 50, price: 500, match: '90%'),
-        ComponentOption(type: 'Standard Edition', seller: 'MakerStore', stock: 100, price: 300, match: '95%'),
-        ComponentOption(type: 'Direct Factory Outlet', seller: 'Direct', stock: 10, price: 200, match: '80%'),
+        ComponentOption(
+          type: 'Premium Selection',
+          seller: 'DigiSupply',
+          stock: 50,
+          price: 500,
+          match: '90%',
+        ),
+        ComponentOption(
+          type: 'Standard Edition',
+          seller: 'MakerStore',
+          stock: 100,
+          price: 300,
+          match: '95%',
+        ),
+        ComponentOption(
+          type: 'Direct Factory Outlet',
+          seller: 'Direct',
+          stock: 10,
+          price: 200,
+          match: '80%',
+        ),
       ],
     );
 
@@ -187,17 +265,26 @@ class ProjectsNotifier extends StateNotifier<ProjectsState> {
       components: updatedComps,
       auditLog: [
         ...proj.auditLog,
-        AuditLogEntry(action: 'Added custom BOM item: $name', timestamp: 'Just now')
+        AuditLogEntry(
+          action: 'Added custom BOM item: $name',
+          timestamp: 'Just now',
+        ),
       ],
     );
     updateProject(updatedProj);
   }
 
-  void selectComponentOption(String projectId, int componentIndex, int optionIndex) {
+  void selectComponentOption(
+    String projectId,
+    int componentIndex,
+    int optionIndex,
+  ) {
     final proj = state.projects.firstWhere((p) => p.id == projectId);
     if (componentIndex < 0 || componentIndex >= proj.components.length) return;
 
-    final updatedComp = proj.components[componentIndex].copyWith(selectedOptionIndex: optionIndex);
+    final updatedComp = proj.components[componentIndex].copyWith(
+      selectedOptionIndex: optionIndex,
+    );
     final updatedComps = List<BOMComponent>.from(proj.components);
     updatedComps[componentIndex] = updatedComp;
 
@@ -218,18 +305,20 @@ class ProjectsNotifier extends StateNotifier<ProjectsState> {
       auditLog: [
         ...proj.auditLog,
         AuditLogEntry(
-            action: 'Marked project as ${isCompleted ? 'Completed' : 'Active'}',
-            timestamp: 'Just now')
+          action: 'Marked project as ${isCompleted ? 'Completed' : 'Active'}',
+          timestamp: 'Just now',
+        ),
       ],
     );
     updateProject(updatedProj);
   }
 }
 
-final projectsProvider =
-    StateNotifierProvider<ProjectsNotifier, ProjectsState>((ref) {
-  return ProjectsNotifier();
-});
+final projectsProvider = StateNotifierProvider<ProjectsNotifier, ProjectsState>(
+  (ref) {
+    return ProjectsNotifier();
+  },
+);
 
 // Profile & Theme State
 class ProfileState {
@@ -258,8 +347,9 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
   }
 }
 
-final profileProvider =
-    StateNotifierProvider<ProfileNotifier, ProfileState>((ref) {
+final profileProvider = StateNotifierProvider<ProfileNotifier, ProfileState>((
+  ref,
+) {
   return ProfileNotifier();
 });
 

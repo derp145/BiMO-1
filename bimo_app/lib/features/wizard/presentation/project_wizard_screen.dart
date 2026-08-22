@@ -5,12 +5,14 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_typography.dart';
 import '../../../shared/layouts/app_scaffold.dart';
+import '../../../shared/widgets/bimo_back_button.dart';
 
 class ProjectWizardScreen extends ConsumerStatefulWidget {
   const ProjectWizardScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<ProjectWizardScreen> createState() => _ProjectWizardScreenState();
+  ConsumerState<ProjectWizardScreen> createState() =>
+      _ProjectWizardScreenState();
 }
 
 class _ProjectWizardScreenState extends ConsumerState<ProjectWizardScreen>
@@ -58,11 +60,14 @@ class _ProjectWizardScreenState extends ConsumerState<ProjectWizardScreen>
     if (projectName.isEmpty) return;
 
     // Navigate to Maker Portal with wizard state
-    context.go('/maker', extra: {
-      'toolType': _toolType ?? 'text',
-      'projectName': projectName,
-      'category': 'engineering', // default unified category
-    });
+    context.go(
+      '/maker',
+      extra: {
+        'toolType': _toolType ?? 'text',
+        'projectName': projectName,
+        'category': 'engineering', // default unified category
+      },
+    );
   }
 
   @override
@@ -136,7 +141,7 @@ class _ProjectWizardScreenState extends ConsumerState<ProjectWizardScreen>
           _SelectionCard(
             title: 'IMPORT REFERENCES',
             subtitle:
-                'Import build specs from YouTube, GitHub, or documentation links to extract a complete BOM.',
+                'Import build specs from YouTube, GitHub, or documentation links to extract a complete Bill of Materials (BOM).',
             icon: Icons.link_rounded,
             selected: _toolType == 'url',
             onTap: () {
@@ -150,7 +155,7 @@ class _ProjectWizardScreenState extends ConsumerState<ProjectWizardScreen>
           _SelectionCard(
             title: 'START FROM AN IDEA',
             subtitle:
-                'Describe your hardware concept in plain text and let BiMO generate the architecture & BOM.',
+                'Describe your hardware concept in plain text and let BiMO generate the architecture and Bill of Materials (BOM).',
             icon: Icons.edit_note_rounded,
             selected: _toolType == 'text',
             onTap: () {
@@ -184,18 +189,30 @@ class _ProjectWizardScreenState extends ConsumerState<ProjectWizardScreen>
                     : (isDark ? AppColors.darkPanel : AppColors.lightPanel),
                 foregroundColor: _nameController.text.trim().isNotEmpty
                     ? Colors.black
-                    : (isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+                    : (isDark
+                          ? AppColors.darkTextMuted
+                          : AppColors.lightTextMuted),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: _nameController.text.trim().isNotEmpty ? _handleFinish : null,
+              onPressed: _nameController.text.trim().isNotEmpty
+                  ? _handleFinish
+                  : null,
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'Review Summary & Build BOM',
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Review & Build Bill of Materials',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
                   ),
                   SizedBox(width: 8),
                   Icon(Icons.arrow_forward_rounded, size: 18),
@@ -215,14 +232,7 @@ class _ProjectWizardScreenState extends ConsumerState<ProjectWizardScreen>
         if (_step > 1)
           Align(
             alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: _prevStep,
-              icon: const Icon(Icons.chevron_left_rounded),
-              label: const Text('Back'),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.emeraldLight,
-              ),
-            ),
+            child: BiMOBackButton(onPressed: _prevStep, label: 'Back'),
           ),
         const SizedBox(height: 12),
 
@@ -246,7 +256,9 @@ class _ProjectWizardScreenState extends ConsumerState<ProjectWizardScreen>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.emeraldLight.withOpacity(0.3 + 0.1 * _orbController.value),
+                    color: AppColors.emeraldLight.withOpacity(
+                      0.3 + 0.1 * _orbController.value,
+                    ),
                     blurRadius: 40 + 20 * _orbController.value,
                     spreadRadius: 10,
                   ),
@@ -291,13 +303,13 @@ class _ProjectWizardScreenState extends ConsumerState<ProjectWizardScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'BiMO INTELLIGENCE',
-            style: AppTypography.labelUppercase(),
-          ),
+          Text('BiMO INTELLIGENCE', style: AppTypography.labelUppercase()),
           const SizedBox(height: 12),
           if (_step == 1) ...[
-            Text('Choose Input Source', style: AppTypography.headingLarge(isDark)),
+            Text(
+              'Choose Input Source',
+              style: AppTypography.headingLarge(isDark),
+            ),
             const SizedBox(height: 8),
             Text(
               'BiMO can extract technical component lists from YouTube video transcripts, GitHub README files, or your custom natural language build descriptions.',
@@ -370,7 +382,9 @@ class _SelectionCard extends StatelessWidget {
                 icon,
                 color: selected
                     ? AppColors.emeraldLight
-                    : (isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+                    : (isDark
+                          ? AppColors.darkTextMuted
+                          : AppColors.lightTextMuted),
                 size: 24,
               ),
             ),
@@ -386,15 +400,12 @@ class _SelectionCard extends StatelessWidget {
                       color: selected
                           ? AppColors.emeraldLight
                           : (isDark
-                              ? AppColors.darkTextPrimary
-                              : AppColors.lightTextPrimary),
+                                ? AppColors.darkTextPrimary
+                                : AppColors.lightTextPrimary),
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: AppTypography.bodySmall(isDark),
-                  ),
+                  Text(subtitle, style: AppTypography.bodySmall(isDark)),
                 ],
               ),
             ),

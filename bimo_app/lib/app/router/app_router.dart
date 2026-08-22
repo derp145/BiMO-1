@@ -6,14 +6,12 @@ import '../../features/maker/presentation/maker_portal_screen.dart';
 import '../../features/planner/presentation/project_planner_screen.dart';
 import '../../features/saved/presentation/saved_projects_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
+import '../../features/help/presentation/help_about_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const DashboardScreen(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => const DashboardScreen()),
     GoRoute(
       path: '/wizard',
       builder: (context, state) => const ProjectWizardScreen(),
@@ -39,10 +37,11 @@ final appRouter = GoRouter(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
     ),
-  ],
-  errorBuilder: (context, state) => Scaffold(
-    body: Center(
-      child: Text('Route not found: ${state.uri}'),
+    GoRoute(
+      path: '/help',
+      builder: (context, state) => const HelpAboutScreen(),
     ),
-  ),
+  ],
+  errorBuilder: (context, state) =>
+      Scaffold(body: Center(child: Text('Route not found: ${state.uri}'))),
 );

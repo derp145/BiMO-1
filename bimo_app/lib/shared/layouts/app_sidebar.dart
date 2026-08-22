@@ -9,11 +9,8 @@ class AppSidebar extends ConsumerWidget {
   final bool isExpanded;
   final VoidCallback onToggle;
 
-  const AppSidebar({
-    Key? key,
-    required this.isExpanded,
-    required this.onToggle,
-  }) : super(key: key);
+  const AppSidebar({Key? key, required this.isExpanded, required this.onToggle})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,9 +20,26 @@ class AppSidebar extends ConsumerWidget {
 
     final navItems = [
       _NavItem(name: 'Dashboard', route: '/', icon: Icons.grid_view_rounded),
-      _NavItem(name: 'New Project', route: '/wizard', icon: Icons.add_circle_outline_rounded),
-      _NavItem(name: 'Saved Projects', route: '/saved', icon: Icons.bookmark_border_rounded),
-      _NavItem(name: 'Settings', route: '/settings', icon: Icons.settings_outlined),
+      _NavItem(
+        name: 'New Project',
+        route: '/wizard',
+        icon: Icons.add_circle_outline_rounded,
+      ),
+      _NavItem(
+        name: 'Saved Projects',
+        route: '/saved',
+        icon: Icons.bookmark_border_rounded,
+      ),
+      _NavItem(
+        name: 'Settings',
+        route: '/settings',
+        icon: Icons.settings_outlined,
+      ),
+      _NavItem(
+        name: 'Help & About',
+        route: '/help',
+        icon: Icons.help_outline_rounded,
+      ),
     ];
 
     final sidebarWidth = isExpanded ? 250.0 : 80.0;
@@ -53,13 +67,18 @@ class AppSidebar extends ConsumerWidget {
                 IconButton(
                   icon: const Icon(Icons.menu_rounded, size: 22),
                   onPressed: onToggle,
-                  color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                  color: isDark
+                      ? AppColors.darkTextMuted
+                      : AppColors.lightTextMuted,
                   tooltip: 'Toggle Sidebar',
                 ),
                 if (isExpanded) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.emeraldSoft,
                       borderRadius: BorderRadius.circular(8),
@@ -68,7 +87,11 @@ class AppSidebar extends ConsumerWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.build_circle_rounded, color: AppColors.emeraldLight, size: 18),
+                        const Icon(
+                          Icons.build_circle_rounded,
+                          color: AppColors.emeraldLight,
+                          size: 18,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           'BiMO',
@@ -94,7 +117,8 @@ class AppSidebar extends ConsumerWidget {
               itemCount: navItems.length,
               itemBuilder: (context, index) {
                 final item = navItems[index];
-                final isActive = currentRoute == item.route ||
+                final isActive =
+                    currentRoute == item.route ||
                     (item.route != '/' && currentRoute.startsWith(item.route));
 
                 return Padding(
@@ -130,23 +154,25 @@ class AppSidebar extends ConsumerWidget {
                             color: isActive
                                 ? AppColors.emeraldLight
                                 : (isDark
-                                    ? AppColors.darkTextMuted
-                                    : AppColors.lightTextMuted),
+                                      ? AppColors.darkTextMuted
+                                      : AppColors.lightTextMuted),
                           ),
                           if (isExpanded) ...[
                             const SizedBox(width: 14),
                             Expanded(
                               child: Text(
                                 item.name,
-                                style: AppTypography.bodyMedium(isDark).copyWith(
-                                  fontWeight:
-                                      isActive ? FontWeight.bold : FontWeight.w500,
-                                  color: isActive
-                                      ? AppColors.emeraldLight
-                                      : (isDark
-                                          ? AppColors.darkTextPrimary
-                                          : AppColors.lightTextPrimary),
-                                ),
+                                style: AppTypography.bodyMedium(isDark)
+                                    .copyWith(
+                                      fontWeight: isActive
+                                          ? FontWeight.bold
+                                          : FontWeight.w500,
+                                      color: isActive
+                                          ? AppColors.emeraldLight
+                                          : (isDark
+                                                ? AppColors.darkTextPrimary
+                                                : AppColors.lightTextPrimary),
+                                    ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -170,8 +196,9 @@ class AppSidebar extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               color: isDark ? AppColors.darkPanel : AppColors.lightPanel,
               child: Row(
-                mainAxisAlignment:
-                    isExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+                mainAxisAlignment: isExpanded
+                    ? MainAxisAlignment.start
+                    : MainAxisAlignment.center,
                 children: [
                   CircleAvatar(
                     radius: 18,
@@ -197,7 +224,9 @@ class AppSidebar extends ConsumerWidget {
                             profile.displayName,
                             style: AppTypography.bodySmall(isDark).copyWith(
                               fontWeight: FontWeight.bold,
-                              color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                              color: isDark
+                                  ? AppColors.darkTextPrimary
+                                  : AppColors.lightTextPrimary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

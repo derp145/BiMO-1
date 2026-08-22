@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_typography.dart';
 import '../../features/projects/data/project_provider.dart';
 
 class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   final String title;
+  final bool showMenuButton;
+  final VoidCallback? onMenuPressed;
 
-  const AppHeader({Key? key, this.title = 'Build Intelligence Workspace'})
-      : super(key: key);
+  const AppHeader({
+    Key? key,
+    this.title = 'Build Intelligence Workspace',
+    this.showMenuButton = false,
+    this.onMenuPressed,
+  }) : super(key: key);
 
   @override
   Size get preferredSize => const Size.fromHeight(68);
@@ -19,7 +26,7 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
 
     return Container(
       height: 68,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: (isDark ? AppColors.darkSurface : AppColors.lightSurface)
             .withOpacity(0.9),
@@ -30,21 +37,38 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Left Page Title
-          Text(
-            title,
-            style: AppTypography.headingMedium(isDark),
+          if (showMenuButton) ...[
+            IconButton(
+              tooltip: 'Open Navigation',
+              icon: const Icon(Icons.menu_rounded, size: 22),
+              onPressed: onMenuPressed,
+              color: isDark
+                  ? AppColors.darkTextMuted
+                  : AppColors.lightTextMuted,
+            ),
+            const SizedBox(width: 6),
+          ],
+
+          Expanded(
+            child: Text(
+              title,
+              style: AppTypography.headingMedium(isDark),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
 
-          // Right Controls (Theme Toggle)
           IconButton(
             tooltip: 'Toggle Theme (Light / Dark)',
             icon: Icon(
-              isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+              isDark
+                  ? Icons.light_mode_outlined
+                  : Icons.dark_mode_outlined,
               size: 22,
-              color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+              color: isDark
+                  ? AppColors.darkTextMuted
+                  : AppColors.lightTextMuted,
             ),
             onPressed: () {
               ref.read(themeModeProvider.notifier).state =

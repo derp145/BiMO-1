@@ -7,11 +7,8 @@ class BomoAssistant extends StatelessWidget {
   final String title;
   final String message;
 
-  const BomoAssistant({
-    Key? key,
-    this.title = 'BOMO',
-    required this.message,
-  }) : super(key: key);
+  const BomoAssistant({Key? key, this.title = 'BiMO', required this.message})
+    : super(key: key);
 
   @override
   Widget build(BuildContext meContext) {
@@ -35,7 +32,7 @@ class BomoAssistant extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // BOMO Avatar Icon Container
+          // BiMO Avatar Icon Container
           Container(
             width: 60,
             height: 60,
@@ -88,14 +85,18 @@ class BomoAssistant extends StatelessWidget {
                       Text(
                         title,
                         style: AppTypography.labelUppercase(
-                          color: isDark ? AppColors.emeraldLight : AppColors.emerald,
+                          color: isDark
+                              ? AppColors.emeraldLight
+                              : AppColors.emerald,
                         ),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         message,
                         style: AppTypography.bodyMedium(isDark).copyWith(
-                          color: isDark ? AppColors.darkTextPrimary : const Color(0xFF1F2937),
+                          color: isDark
+                              ? AppColors.darkTextPrimary
+                              : const Color(0xFF1F2937),
                           fontWeight: FontWeight.w500,
                           height: 1.45,
                         ),
