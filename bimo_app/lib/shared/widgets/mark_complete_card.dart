@@ -16,43 +16,69 @@ class MarkCompleteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkPanel : AppColors.lightPanel,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Switch.adaptive(
-            value: isCompleted,
-            activeColor: AppColors.emeraldLight,
-            onChanged: onToggle,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth <= 360;
+        final horizontalPadding = isNarrow ? 12.0 : 16.0;
+        final gap = isNarrow ? 8.0 : 10.0;
+
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: 12,
           ),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkPanel : AppColors.lightPanel,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                isCompleted ? 'BUILD COMPLETED & ARCHIVED' : 'ACTIVE BUILD IN PROGRESS',
-                style: AppTypography.labelUppercase(
-                  color: isCompleted ? AppColors.emeraldLight : AppColors.darkTextMuted,
-                ),
+              Switch.adaptive(
+                value: isCompleted,
+                activeColor: AppColors.emeraldLight,
+                onChanged: onToggle,
               ),
-              const SizedBox(height: 2),
-              Text(
-                isCompleted ? 'Project marked complete in workspace' : 'Toggle when all parts are acquired & assembled',
-                style: AppTypography.bodySmall(isDark),
+              SizedBox(width: gap),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      isCompleted
+                          ? 'BUILD COMPLETED & ARCHIVED'
+                          : 'ACTIVE BUILD IN PROGRESS',
+                      maxLines: 2,
+                      overflow: TextOverflow.visible,
+                      softWrap: true,
+                      style: AppTypography.labelUppercase(
+                        color: isCompleted
+                            ? AppColors.emeraldLight
+                            : AppColors.darkTextMuted,
+                      ).copyWith(fontSize: isNarrow ? 10.5 : null),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      isCompleted
+                          ? 'Project marked complete in workspace'
+                          : 'Toggle when all parts are acquired & assembled',
+                      maxLines: 2,
+                      overflow: TextOverflow.visible,
+                      softWrap: true,
+                      style: AppTypography.bodySmall(isDark),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

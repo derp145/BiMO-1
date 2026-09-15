@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/models.dart';
 import '../../../mock/mock_data.dart';
+import 'project_api_service.dart';
 
 const int trashRetentionDays = 15;
 const Duration trashRetentionDuration = Duration(days: trashRetentionDays);
@@ -94,8 +95,15 @@ class ProjectsNotifier extends StateNotifier<ProjectsState> {
     state = state.copyWith(activeProject: project);
   }
 
-  void addProject(ProjectModel newProject) {
+  Future<void> addProject(ProjectModel newProject) async {
     state = state.copyWith(projects: [newProject, ...state.projects]);
+
+    try {
+      await ProjectApiService.createProject(newProject);
+      debugPrint('Project saved to Laravel successfully.');
+    } catch (e) {
+      debugPrint('Failed to save project to Laravel: $e');
+    }
   }
 
   void cleanupExpiredTrash() {

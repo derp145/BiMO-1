@@ -1692,9 +1692,10 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                           SizedBox(
                             width: leftColumnWidth,
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(20),
+                                  padding: EdgeInsets.all(cardPadding),
                                   decoration: BoxDecoration(
                                     color: isDark
                                         ? AppColors.darkSurface
@@ -1726,51 +1727,50 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                                         itemBuilder: (context, idx) {
                                           final item =
                                               _currentProject!.components[idx];
+                                          final itemPrice =
+                                              '\u20B1${(item.totalPrice * (_currentProject!.isOptimized ? 0.75 : 1.0)).toStringAsFixed(0)}';
                                           if (isMobile) {
                                             return Padding(
                                               padding:
                                                   const EdgeInsets.symmetric(
                                                     vertical: 8,
                                                   ),
-                                              child: Row(
+                                              child: Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          item.local,
-                                                          style:
-                                                              AppTypography.bodyMedium(
-                                                                isDark,
-                                                              ),
-                                                        ),
-                                                        Text(
-                                                          item.notes,
-                                                          style:
-                                                              AppTypography.bodySmall(
-                                                                isDark,
-                                                              ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 12),
                                                   Text(
-                                                    '\u20B1${(item.totalPrice * (_currentProject!.isOptimized ? 0.75 : 1.0)).toStringAsFixed(0)}',
+                                                    item.local,
                                                     style:
                                                         AppTypography.bodyMedium(
                                                           isDark,
-                                                        ).copyWith(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: AppColors
-                                                              .emeraldLight,
                                                         ),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    item.notes,
+                                                    style:
+                                                        AppTypography.bodySmall(
+                                                          isDark,
+                                                        ),
+                                                  ),
+                                                  const SizedBox(height: 6),
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.centerRight,
+                                                    child: Text(
+                                                      itemPrice,
+                                                      textAlign: TextAlign.end,
+                                                      style:
+                                                          AppTypography.bodyMedium(
+                                                            isDark,
+                                                          ).copyWith(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: AppColors
+                                                                .emeraldLight,
+                                                          ),
+                                                    ),
                                                   ),
                                                 ],
                                               ),
@@ -1794,7 +1794,7 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             trailing: Text(
-                                              '\u20B1${(item.totalPrice * (_currentProject!.isOptimized ? 0.75 : 1.0)).toStringAsFixed(0)}',
+                                              itemPrice,
                                               style:
                                                   AppTypography.bodyMedium(
                                                     isDark,
@@ -1830,13 +1830,17 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                           SizedBox(
                             width: rightColumnWidth,
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                const StoreMapVisual(
-                                  locationQuery: 'Manila Agora Hardware Hub',
+                                const SizedBox(
+                                  width: double.infinity,
+                                  child: StoreMapVisual(
+                                    locationQuery: 'Manila Agora Hardware Hub',
+                                  ),
                                 ),
                                 const SizedBox(height: 16),
                                 Container(
-                                  padding: const EdgeInsets.all(20),
+                                  padding: EdgeInsets.all(cardPadding),
                                   decoration: BoxDecoration(
                                     color: isDark
                                         ? AppColors.darkSurface
@@ -1895,14 +1899,25 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                                             ),
                                           ),
                                           const SizedBox(width: 12),
-                                          Text(
-                                            '\u20B1${_currentProject!.finalCost.toStringAsFixed(0)}',
-                                            style:
-                                                AppTypography.headingLarge(
-                                                  isDark,
-                                                ).copyWith(
-                                                  color: AppColors.emeraldLight,
+                                          Flexible(
+                                            child: Align(
+                                              alignment: Alignment.centerRight,
+                                              child: FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                alignment:
+                                                    Alignment.centerRight,
+                                                child: Text(
+                                                  '\u20B1${_currentProject!.finalCost.toStringAsFixed(0)}',
+                                                  style:
+                                                      AppTypography.headingLarge(
+                                                        isDark,
+                                                      ).copyWith(
+                                                        color: AppColors
+                                                            .emeraldLight,
+                                                      ),
                                                 ),
+                                              ),
+                                            ),
                                           ),
                                         ],
                                       ),
