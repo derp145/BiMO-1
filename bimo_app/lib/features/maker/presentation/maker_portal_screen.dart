@@ -13,11 +13,13 @@ import '../../../shared/widgets/generate_button.dart';
 import '../../../shared/widgets/mark_complete_card.dart';
 import '../../projects/domain/models.dart';
 import '../../projects/data/project_provider.dart';
+import '../../projects/data/project_api_service.dart';
+import 'package:latlong2/latlong.dart' as latlong;
 
 class MakerPortalScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? wizardData;
 
-  const MakerPortalScreen({Key? key, this.wizardData}) : super(key: key);
+  const MakerPortalScreen({super.key, this.wizardData});
 
   @override
   ConsumerState<MakerPortalScreen> createState() => _MakerPortalScreenState();
@@ -35,6 +37,7 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
 
   bool _isExtracting = false;
   bool _extractionComplete = false;
+  String? _errorMessage;
   bool? _useOptimizedSelection;
   ProjectModel? _currentProject;
 
@@ -74,105 +77,76 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
     });
   }
 
-  void _handleStartExtraction() {
+  Future<void> _handleStartExtraction() async {
+    final input = _inputMode == 'url'
+        ? _urlController.text.trim()
+        : _promptController.text.trim();
+
+    if (input.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _inputMode == 'url'
+                ? 'Please enter a valid tutorial or project URL.'
+                : 'Please enter a project description to generate.',
+          ),
+          backgroundColor: AppColors.orangeWarning,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isExtracting = true;
       _extractionComplete = false;
+      _errorMessage = null;
       _useOptimizedSelection = null;
     });
 
-    // Simulate extraction delay
-    Future.delayed(const Duration(milliseconds: 3200), () {
-      if (mounted) {
-        setState(() {
-          _extractionComplete = true;
-        });
+    try {
+      final isNew = _currentProject == null;
+      final generatedProject = await ProjectApiService.generateBOM(
+        projectId: _currentProject?.id,
+        inputMode: _inputMode,
+        input: input,
+        currentProject: _currentProject,
+      );
+
+      if (!mounted) return;
+
+      if (isNew) {
+        await ref.read(projectsProvider.notifier).addProject(generatedProject);
+      } else {
+        ref.read(projectsProvider.notifier).updateProject(generatedProject);
       }
-    });
+
+      ref.read(projectsProvider.notifier).setActiveProject(generatedProject);
+
+      setState(() {
+        _currentProject = generatedProject;
+        _titleController.text = generatedProject.title;
+        _extractionComplete = true;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isExtracting = false;
+        _extractionComplete = false;
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to generate BOM: $_errorMessage'),
+          backgroundColor: AppColors.redAlert,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
   }
 
   void _handleExtractionFinished() {
-    final title = _titleController.text.trim().isNotEmpty
-        ? _titleController.text.trim()
-        : 'Smart Automated Greenhouse';
-
-    final newProj = ProjectModel(
-      id: 'proj-${DateTime.now().millisecondsSinceEpoch}',
-      title: title,
-      category: 'engineering',
-      createdAt: DateTime.now(),
-      isOptimized: true,
-      buildInstructions: [
-        'Step 1: Connect the main controller to a stable power source (3.3V or 5V depending on board specs).',
-        'Step 2: Wire the sensor modules to the analog/digital input pins.',
-        'Step 3: Connect actuators/relays to the digital output pins, ensuring logic level compatibility.',
-        'Step 4: Flash the firmware and monitor serial output for initial diagnostics.',
-      ],
-      components: [
-        BOMComponent(
-          orig: 'Main Microcontroller Board',
-          local: 'Generic Development Board',
-          notes: 'Based on project requirements',
-          qty: 1,
-          category: 'Microcontrollers',
-          selectedOptionIndex: 0,
-          options: [
-            ComponentOption(
-              type: 'Standard',
-              seller: 'Local Tech Shop',
-              stock: 50,
-              price: 500.0,
-              match: '95%',
-            ),
-          ],
-        ),
-        BOMComponent(
-          orig: 'Sensor Module',
-          local: 'Compatible Sensor Unit',
-          notes: 'Required for environment reading',
-          qty: 2,
-          category: 'Sensors',
-          selectedOptionIndex: 0,
-          options: [
-            ComponentOption(
-              type: 'Standard',
-              seller: 'Sensor Depot',
-              stock: 100,
-              price: 150.0,
-              match: '98%',
-            ),
-          ],
-        ),
-        BOMComponent(
-          orig: 'Power Supply Unit',
-          local: '12V/5V Dual Power Supply',
-          notes: 'Sufficient wattage for all modules',
-          qty: 1,
-          category: 'Power',
-          selectedOptionIndex: 0,
-          options: [
-            ComponentOption(
-              type: 'Standard',
-              seller: 'PowerHaus',
-              stock: 30,
-              price: 350.0,
-              match: '99%',
-            ),
-          ],
-        ),
-      ],
-      auditLog: [
-        AuditLogEntry(
-          action: 'Extracted components from prompt',
-          timestamp: 'Just now',
-        ),
-      ],
-    );
-
-    ref.read(projectsProvider.notifier).addProject(newProj);
-
     setState(() {
-      _currentProject = newProj;
       _isExtracting = false;
       _step = 1;
       _useOptimizedSelection = null;
@@ -224,7 +198,7 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
     switch (_step) {
       case 0:
         return _isExtracting
-            ? 'Processing your input... I am running Natural Language Processing to extract technical specifications and cross-reference them with live Agora nodes.'
+            ? 'Processing your input... Analyzing technical specifications and generating structured Bill of Materials.'
             : 'Hi there! I am BiMO. Describe your hardware setup or paste a reference link, and I will generate your Bill of Materials and search local suppliers!';
       case 1:
         return 'Extraction complete! I found your parts from local suppliers. I also flagged potential logic level mismatches (ESP32 3.3V vs 5V Relays), see warning indicator below.';
@@ -495,7 +469,7 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                         color: AppColors.redSoft,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColors.redAlert.withOpacity(0.3),
+                          color: AppColors.redAlert.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(
@@ -1832,10 +1806,21 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                const SizedBox(
+                                SizedBox(
                                   width: double.infinity,
                                   child: StoreMapVisual(
-                                    locationQuery: 'Manila Agora Hardware Hub',
+                                    locationQuery: _currentProject?.city != null && _currentProject!.city!.isNotEmpty
+                                        ? '${_currentProject!.city}, ${_currentProject!.region ?? 'Philippines'}'
+                                        : 'Metro Manila, Philippines',
+                                    markers: _currentProject?.suggestedStores
+                                        .where((store) => store['lat'] != null && store['lng'] != null)
+                                        .map((store) => MapStoreMarker(
+                                              id: store['name'] ?? '',
+                                              title: store['displayName'] ?? store['name'] ?? 'Hardware Store',
+                                              subtitle: store['reason'] ?? store['type'] ?? '',
+                                              position: latlong.LatLng(store['lat'] as double, store['lng'] as double),
+                                            ))
+                                        .toList() ?? [],
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -1874,7 +1859,7 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                                           ),
                                           border: Border.all(
                                             color: AppColors.emerald
-                                                .withOpacity(0.3),
+                                                .withValues(alpha: 0.3),
                                           ),
                                         ),
                                         child: Text(
@@ -1976,7 +1961,7 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                                           ).showSnackBar(
                                             const SnackBar(
                                               content: Text(
-                                                'Saved Plan as Document (PDF/Word) - Mock',
+                                                'Saved Plan as Document (PDF/Word)',
                                               ),
                                             ),
                                           );

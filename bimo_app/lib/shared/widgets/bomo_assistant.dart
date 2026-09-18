@@ -7,8 +7,7 @@ class BomoAssistant extends StatelessWidget {
   final String title;
   final String message;
 
-  const BomoAssistant({Key? key, this.title = 'BiMO', required this.message})
-    : super(key: key);
+  const BomoAssistant({super.key, this.title = 'BiMO', required this.message});
 
   @override
   Widget build(BuildContext meContext) {
@@ -20,10 +19,10 @@ class BomoAssistant extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A8A5F) : AppColors.emerald,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.emeraldLight.withOpacity(0.3)),
+        border: Border.all(color: AppColors.emeraldLight.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.12),
+            color: Colors.black.withValues(alpha: 0.12),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -37,9 +36,9 @@ class BomoAssistant extends StatelessWidget {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withOpacity(0.3)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
             ),
             child: const Center(
               child: Icon(
@@ -68,12 +67,12 @@ class BomoAssistant extends StatelessWidget {
                     ),
                     border: Border.all(
                       color: isDark
-                          ? Colors.white.withOpacity(0.08)
-                          : Colors.black.withOpacity(0.05),
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.05),
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
+                        color: Colors.black.withValues(alpha: 0.08),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),

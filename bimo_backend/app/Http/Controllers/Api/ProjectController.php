@@ -33,6 +33,8 @@ class ProjectController extends Controller
             'author_name' => 'nullable|string',
             'thumbnail_url' => 'nullable|string',
             'build_instructions' => 'nullable|array',
+            'components' => 'nullable|array',
+            'audit_log' => 'nullable|array',
         ]);
 
         $project = Project::create($validated);
@@ -69,6 +71,8 @@ class ProjectController extends Controller
             'author_name' => 'nullable|string',
             'thumbnail_url' => 'nullable|string',
             'build_instructions' => 'nullable|array',
+            'components' => 'nullable|array',
+            'audit_log' => 'nullable|array',
         ]);
 
         $project->update($validated);

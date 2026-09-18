@@ -3,7 +3,7 @@ import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_typography.dart';
 
 class CompatibilityAlertModal extends StatelessWidget {
-  const CompatibilityAlertModal({Key? key}) : super(key: key);
+  const CompatibilityAlertModal({super.key});
 
   static void show(BuildContext context) {
     showDialog(

@@ -8,7 +8,7 @@ import '../../../shared/layouts/app_scaffold.dart';
 import '../../../shared/widgets/bimo_back_button.dart';
 
 class ProjectWizardScreen extends ConsumerStatefulWidget {
-  const ProjectWizardScreen({Key? key}) : super(key: key);
+  const ProjectWizardScreen({super.key});
 
   @override
   ConsumerState<ProjectWizardScreen> createState() =>
@@ -247,17 +247,17 @@ class _ProjectWizardScreenState extends ConsumerState<ProjectWizardScreen>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.emeraldLight.withOpacity(0.8),
-                    AppColors.emerald.withOpacity(0.4),
-                    AppColors.blueAccent.withOpacity(0.1),
+                    AppColors.emeraldLight.withValues(alpha: 0.8),
+                    AppColors.emerald.withValues(alpha: 0.4),
+                    AppColors.blueAccent.withValues(alpha: 0.1),
                     Colors.transparent,
                   ],
                   stops: const [0.2, 0.5, 0.8, 1.0],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.emeraldLight.withOpacity(
-                      0.3 + 0.1 * _orbController.value,
+                    color: AppColors.emeraldLight.withValues(
+                      alpha: 0.3 + 0.1 * _orbController.value,
                     ),
                     blurRadius: 40 + 20 * _orbController.value,
                     spreadRadius: 10,
@@ -272,7 +272,7 @@ class _ProjectWizardScreenState extends ConsumerState<ProjectWizardScreen>
                     color: isDark ? AppColors.darkSurface : Colors.white,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.emeraldLight.withOpacity(0.5),
+                      color: AppColors.emeraldLight.withValues(alpha: 0.5),
                       width: 2,
                     ),
                   ),
@@ -337,13 +337,12 @@ class _SelectionCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _SelectionCard({
-    Key? key,
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.selected,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -374,7 +373,7 @@ class _SelectionCard extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: selected
-                    ? AppColors.emeraldLight.withOpacity(0.2)
+                    ? AppColors.emeraldLight.withValues(alpha: 0.2)
                     : (isDark ? AppColors.darkPanel : AppColors.lightPanel),
                 borderRadius: BorderRadius.circular(12),
               ),

@@ -7,11 +7,11 @@ class Skeleton extends StatefulWidget {
   final BorderRadius? borderRadius;
 
   const Skeleton({
-    Key? key,
+    super.key,
     this.width,
     required this.height,
     this.borderRadius,
-  }) : super(key: key);
+  });
 
   @override
   State<Skeleton> createState() => _SkeletonState();
@@ -51,7 +51,7 @@ class _SkeletonState extends State<Skeleton> with SingleTickerProviderStateMixin
           height: widget.height,
           decoration: BoxDecoration(
             color: (isDark ? AppColors.darkPanel : AppColors.lightPanel)
-                .withOpacity(_animation.value),
+                .withValues(alpha: _animation.value),
             borderRadius: widget.borderRadius ?? BorderRadius.circular(12),
           ),
         );

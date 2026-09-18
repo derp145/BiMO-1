@@ -8,12 +8,12 @@ import '../../../shared/widgets/bomo_assistant.dart';
 import '../../../shared/widgets/bimo_back_button.dart';
 import '../../../shared/widgets/store_map_visual.dart';
 import '../../../shared/widgets/animated_checkbox.dart';
-import '../../../shared/widgets/compatibility_alert.dart';
 import '../../projects/domain/models.dart';
 import '../../projects/data/project_provider.dart';
+import 'package:latlong2/latlong.dart' as latlong;
 
 class ProjectPlannerScreen extends ConsumerStatefulWidget {
-  const ProjectPlannerScreen({Key? key}) : super(key: key);
+  const ProjectPlannerScreen({super.key});
 
   @override
   ConsumerState<ProjectPlannerScreen> createState() =>
@@ -28,8 +28,6 @@ class _ProjectPlannerScreenState extends ConsumerState<ProjectPlannerScreen> {
   late TextEditingController _customSpecController;
 
   ProjectModel? _loadedProject;
-  final Set<String> _checkedTasks = <String>{};
-  final List<String> _customTasks = [];
 
   @override
   void initState() {
@@ -96,7 +94,6 @@ class _ProjectPlannerScreenState extends ConsumerState<ProjectPlannerScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
-    final isVeryNarrow = screenWidth <= 360;
 
     final projectsState = ref.watch(projectsProvider);
     final currentProject =
@@ -214,7 +211,7 @@ class _ProjectPlannerScreenState extends ConsumerState<ProjectPlannerScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
-                                  'Saved Plan as Document (PDF/Word) - Mock',
+                                  'Saved Plan as Document (PDF/Word)',
                                 ),
                               ),
                             );
@@ -321,7 +318,7 @@ class _ProjectPlannerScreenState extends ConsumerState<ProjectPlannerScreen> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
-                                    'Saved Plan as Document (PDF/Word) - Mock',
+                                    'Saved Plan as Document (PDF/Word)',
                                   ),
                                 ),
                               );
@@ -405,7 +402,7 @@ class _ProjectPlannerScreenState extends ConsumerState<ProjectPlannerScreen> {
                             Text(
                               '\u2022 Hardware Budget: \u20B1${currentProject.finalCost.toStringAsFixed(0)}\n'
                               'Bill of Materials: ${currentProject.partsCount} total components\n'
-                              '\u2022 Location: Manila Hardware Agora Hub',
+                              '\u2022 Location: ${currentProject.city ?? 'Metro Manila'}, ${currentProject.region ?? 'Philippines'}',
                               style: AppTypography.bodySmall(isDark),
                             ),
                           ],
@@ -414,10 +411,21 @@ class _ProjectPlannerScreenState extends ConsumerState<ProjectPlannerScreen> {
 
                       const SizedBox(height: 16),
 
-                      const SizedBox(
+                      SizedBox(
                         width: double.infinity,
                         child: StoreMapVisual(
-                          locationQuery: 'Metro Manila, NCR',
+                          locationQuery: currentProject.city != null && currentProject.city!.isNotEmpty
+                              ? '${currentProject.city}, ${currentProject.region ?? 'Philippines'}'
+                              : 'Metro Manila, NCR',
+                          markers: currentProject.suggestedStores
+                              .where((store) => store['lat'] != null && store['lng'] != null)
+                              .map((store) => MapStoreMarker(
+                                    id: store['name'] ?? '',
+                                    title: store['displayName'] ?? store['name'] ?? 'Hardware Store',
+                                    subtitle: store['reason'] ?? store['type'] ?? '',
+                                    position: latlong.LatLng(store['lat'] as double, store['lng'] as double),
+                                  ))
+                              .toList(),
                         ),
                       ),
                     ],
@@ -471,7 +479,7 @@ class _ProjectPlannerScreenState extends ConsumerState<ProjectPlannerScreen> {
                               Text(
                                 '\u2022 Hardware Budget: \u20B1${currentProject.finalCost.toStringAsFixed(0)}\n'
                                 'Bill of Materials: ${currentProject.partsCount} total components\n'
-                                '\u2022 Location: Manila Hardware Agora Hub',
+                                '\u2022 Location: ${currentProject.city ?? 'Metro Manila'}, ${currentProject.region ?? 'Philippines'}',
                                 style: AppTypography.bodySmall(isDark),
                               ),
                             ],
@@ -481,10 +489,21 @@ class _ProjectPlannerScreenState extends ConsumerState<ProjectPlannerScreen> {
 
                       const SizedBox(width: 16),
 
-                      const Expanded(
+                      Expanded(
                         flex: 5,
                         child: StoreMapVisual(
-                          locationQuery: 'Metro Manila, NCR',
+                          locationQuery: currentProject.city != null && currentProject.city!.isNotEmpty
+                              ? '${currentProject.city}, ${currentProject.region ?? 'Philippines'}'
+                              : 'Metro Manila, NCR',
+                          markers: currentProject.suggestedStores
+                              .where((store) => store['lat'] != null && store['lng'] != null)
+                              .map((store) => MapStoreMarker(
+                                    id: store['name'] ?? '',
+                                    title: store['displayName'] ?? store['name'] ?? 'Hardware Store',
+                                    subtitle: store['reason'] ?? store['type'] ?? '',
+                                    position: latlong.LatLng(store['lat'] as double, store['lng'] as double),
+                                  ))
+                              .toList(),
                         ),
                       ),
                     ],

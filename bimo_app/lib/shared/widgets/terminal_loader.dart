@@ -9,10 +9,10 @@ class TerminalLoader extends StatefulWidget {
   final VoidCallback onFinished;
 
   const TerminalLoader({
-    Key? key,
+    super.key,
     required this.isComplete,
     required this.onFinished,
-  }) : super(key: key);
+  });
 
   @override
   State<TerminalLoader> createState() => _TerminalLoaderState();
@@ -20,7 +20,7 @@ class TerminalLoader extends StatefulWidget {
 
 class _TerminalLoaderState extends State<TerminalLoader> {
   int _progress = 0;
-  String _statusText = 'Initializing BiMO NLP Extraction Engine...';
+  String _statusText = 'Connecting to BiMO AI Extraction Engine...';
   Timer? _timer;
   final Random _random = Random();
 
@@ -35,17 +35,17 @@ class _TerminalLoaderState extends State<TerminalLoader> {
       if (mounted) {
         setState(() {
           if (_progress < 35) {
-            _statusText = 'Analyzing project prompt & system architecture...';
+            _statusText = 'Analyzing project prompt & architecture...';
             _progress += _random.nextInt(12) + 6;
           } else if (_progress < 70) {
             _statusText = 'Extracting components & checking voltage specs...';
             _progress += _random.nextInt(10) + 4;
           } else if (_progress < 96) {
-            _statusText = 'Matching local Agora suppliers & pricing in ₱ PHP...';
+            _statusText = 'Structuring Bill of Materials & build instructions...';
             _progress += _random.nextInt(4) + 1;
           } else {
             _progress = 99;
-            _statusText = 'Finalizing Bill of Materials & optimization...';
+            _statusText = 'Validating component schemas & requirements...';
           }
         });
       }
@@ -59,7 +59,7 @@ class _TerminalLoaderState extends State<TerminalLoader> {
       _timer?.cancel();
       setState(() {
         _progress = 100;
-        _statusText = 'Extraction & Compatibility Check Complete!';
+        _statusText = 'Extraction & Component Validation Complete!';
       });
       Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted) widget.onFinished();
@@ -87,7 +87,7 @@ class _TerminalLoaderState extends State<TerminalLoader> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -148,7 +148,7 @@ class _TerminalLoaderState extends State<TerminalLoader> {
                     color: isDark ? const Color(0xFF0D0D11) : const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppColors.emeraldLight.withOpacity(0.2),
+                      color: AppColors.emeraldLight.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Center(
@@ -160,7 +160,7 @@ class _TerminalLoaderState extends State<TerminalLoader> {
                           height: 8 + (index % 3) * 12.0,
                           margin: const EdgeInsets.symmetric(horizontal: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.emeraldLight.withOpacity(0.8),
+                            color: AppColors.emeraldLight.withValues(alpha: 0.8),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         );

@@ -7,10 +7,10 @@ class MarkCompleteCard extends StatelessWidget {
   final ValueChanged<bool> onToggle;
 
   const MarkCompleteCard({
-    Key? key,
+    super.key,
     required this.isCompleted,
     required this.onToggle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,7 @@ class MarkCompleteCard extends StatelessWidget {
             children: [
               Switch.adaptive(
                 value: isCompleted,
-                activeColor: AppColors.emeraldLight,
+              activeThumbColor: AppColors.emeraldLight,
                 onChanged: onToggle,
               ),
               SizedBox(width: gap),

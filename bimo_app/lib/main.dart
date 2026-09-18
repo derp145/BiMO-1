@@ -10,7 +10,7 @@ void main() {
 }
 
 class BiMoApp extends ConsumerWidget {
-  const BiMoApp({Key? key}) : super(key: key);
+  const BiMoApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

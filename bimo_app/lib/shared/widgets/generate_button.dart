@@ -7,11 +7,11 @@ class GenerateButton extends StatelessWidget {
   final String label;
 
   const GenerateButton({
-    Key? key,
+    super.key,
     this.disabled = false,
     required this.onPressed,
     this.label = 'Generate Bill of Materials & Architecture',
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class GenerateButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          shadowColor: AppColors.emeraldLight.withOpacity(0.4),
+          shadowColor: AppColors.emeraldLight.withValues(alpha: 0.4),
         ),
         onPressed: disabled ? null : onPressed,
         child: Row(

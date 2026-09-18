@@ -7,10 +7,10 @@ class AppScaffold extends StatefulWidget {
   final String title;
 
   const AppScaffold({
-    Key? key,
+    super.key,
     required this.body,
     this.title = 'Build Intelligence & Materials Organizer',
-  }) : super(key: key);
+  });
 
   @override
   State<AppScaffold> createState() => _AppScaffoldState();

@@ -9,8 +9,7 @@ class AppSidebar extends ConsumerWidget {
   final bool isExpanded;
   final VoidCallback onToggle;
 
-  const AppSidebar({Key? key, required this.isExpanded, required this.onToggle})
-    : super(key: key);
+  const AppSidebar({super.key, required this.isExpanded, required this.onToggle});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

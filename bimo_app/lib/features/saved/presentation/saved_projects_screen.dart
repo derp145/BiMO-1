@@ -9,7 +9,7 @@ import '../../projects/domain/models.dart';
 import '../../projects/data/project_provider.dart';
 
 class SavedProjectsScreen extends ConsumerStatefulWidget {
-  const SavedProjectsScreen({Key? key}) : super(key: key);
+  const SavedProjectsScreen({super.key});
 
   @override
   ConsumerState<SavedProjectsScreen> createState() =>
@@ -501,13 +501,12 @@ class _TabButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const _TabButton({
-    Key? key,
     required this.label,
     required this.icon,
     required this.selected,
     required this.activeColor,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

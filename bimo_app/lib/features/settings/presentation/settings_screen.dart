@@ -6,7 +6,7 @@ import '../../../shared/layouts/app_scaffold.dart';
 import '../../projects/data/project_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -33,7 +33,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
    final isDark = Theme.of(context).brightness == Brightness.dark;
 final screenWidth = MediaQuery.of(context).size.width;
 final isMobile = screenWidth < 600;
-final isVeryNarrow = screenWidth <= 360;
 
 final profile = ref.watch(profileProvider);
 final themeMode = ref.watch(themeModeProvider);
@@ -465,13 +464,12 @@ class _ThemeChoiceCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _ThemeChoiceCard({
-    Key? key,
     required this.label,
     required this.subtitle,
     required this.icon,
     required this.selected,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

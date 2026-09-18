@@ -241,31 +241,9 @@ class ProjectsNotifier extends StateNotifier<ProjectsState> {
       local: name,
       notes: spec.isNotEmpty ? spec : 'Custom user specification',
       qty: 1,
-      selectedOptionIndex: 1,
+      selectedOptionIndex: 0,
       isCustom: true,
-      options: [
-        ComponentOption(
-          type: 'Premium Selection',
-          seller: 'DigiSupply',
-          stock: 50,
-          price: 500,
-          match: '90%',
-        ),
-        ComponentOption(
-          type: 'Standard Edition',
-          seller: 'MakerStore',
-          stock: 100,
-          price: 300,
-          match: '95%',
-        ),
-        ComponentOption(
-          type: 'Direct Factory Outlet',
-          seller: 'Direct',
-          stock: 10,
-          price: 200,
-          match: '80%',
-        ),
-      ],
+      options: const [],
     );
 
     final updatedComps = [...proj.components, newComp];

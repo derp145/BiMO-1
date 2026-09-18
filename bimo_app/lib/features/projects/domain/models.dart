@@ -47,7 +47,7 @@ class BOMComponent {
     required this.local,
     required this.notes,
     this.qty = 1,
-    this.selectedOptionIndex = 1,
+    this.selectedOptionIndex = 0,
     required this.options,
     this.isBought = false,
     this.isCustom = false,
@@ -61,14 +61,46 @@ class BOMComponent {
           : (options.isNotEmpty
               ? options.first
               : ComponentOption(
-                  type: 'Standard Edition',
-                  seller: 'MakerStore',
-                  stock: 100,
-                  price: 350.0,
-                  match: '95%'));
+                  type: 'Standard Option',
+                  seller: '',
+                  stock: 0,
+                  price: 0.0,
+                  match: '100%'));
 
   double get unitPrice => selectedOption.price;
   double get totalPrice => unitPrice * qty;
+
+  Map<String, dynamic> toJson() => {
+        'orig': orig,
+        'local': local,
+        'notes': notes,
+        'qty': qty,
+        'selectedOptionIndex': selectedOptionIndex,
+        'options': options.map((opt) => opt.toJson()).toList(),
+        'isBought': isBought,
+        'isCustom': isCustom,
+        'category': category,
+        if (actualCost != null) 'actualCost': actualCost,
+      };
+
+  factory BOMComponent.fromJson(Map<String, dynamic> json) => BOMComponent(
+        orig: json['orig'] ?? '',
+        local: json['local'] ?? '',
+        notes: json['notes'] ?? '',
+        qty: (json['qty'] as num?)?.toInt() ?? 1,
+        selectedOptionIndex: (json['selectedOptionIndex'] as num?)?.toInt() ??
+            (json['selected_option_index'] as num?)?.toInt() ??
+            0,
+        options: (json['options'] as List<dynamic>?)
+                ?.map((opt) => ComponentOption.fromJson(opt as Map<String, dynamic>))
+                .toList() ??
+            [],
+        isBought: json['isBought'] ?? json['is_bought'] ?? false,
+        isCustom: json['isCustom'] ?? json['is_custom'] ?? false,
+        category: json['category'] ?? 'Hardware',
+        actualCost: (json['actualCost'] as num?)?.toDouble() ??
+            (json['actual_cost'] as num?)?.toDouble(),
+      );
 
   BOMComponent copyWith({
     String? orig,
@@ -102,6 +134,16 @@ class AuditLogEntry {
   final String timestamp;
 
   AuditLogEntry({required this.action, required this.timestamp});
+
+  Map<String, dynamic> toJson() => {
+        'action': action,
+        'timestamp': timestamp,
+      };
+
+  factory AuditLogEntry.fromJson(Map<String, dynamic> json) => AuditLogEntry(
+        action: json['action'] ?? '',
+        timestamp: json['timestamp'] ?? '',
+      );
 }
 
 class ProjectModel {
@@ -121,6 +163,7 @@ class ProjectModel {
   String? authorName;
   String? thumbnailUrl;
   List<String> buildInstructions;
+  List<Map<String, dynamic>> suggestedStores;
 
   ProjectModel({
     required this.id,
@@ -139,6 +182,7 @@ class ProjectModel {
     this.authorName,
     this.thumbnailUrl,
     this.buildInstructions = const [],
+    this.suggestedStores = const [],
   });
 
   double get baseTotalCost {
@@ -151,6 +195,117 @@ class ProjectModel {
   }
 
   int get partsCount => components.length;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'category': category,
+        'createdAt': createdAt.toIso8601String(),
+        'created_at': createdAt.toIso8601String(),
+        if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
+        if (deletedAt != null) 'deleted_at': deletedAt!.toIso8601String(),
+        'isOptimized': isOptimized,
+        'is_optimized': isOptimized,
+        'isCompleted': isCompleted,
+        'is_completed': isCompleted,
+        'components': components.map((comp) => comp.toJson()).toList(),
+        'auditLog': auditLog.map((log) => log.toJson()).toList(),
+        'audit_log': auditLog.map((log) => log.toJson()).toList(),
+        'region': region,
+        'city': city,
+        'barangay': barangay,
+        'promptOrUrl': promptOrUrl,
+        'prompt_or_url': promptOrUrl,
+        'authorName': authorName,
+        'author_name': authorName,
+        'thumbnail_url': thumbnailUrl,
+        'buildInstructions': buildInstructions,
+        'build_instructions': buildInstructions,
+        'suggestedStores': suggestedStores,
+        'suggested_stores': suggestedStores,
+      };
+
+  factory ProjectModel.fromJson(Map<String, dynamic> json) {
+    DateTime parseDate(dynamic value) {
+      if (value is String) {
+        return DateTime.tryParse(value) ?? DateTime.now();
+      }
+      return DateTime.now();
+    }
+
+    DateTime? parseNullableDate(dynamic value) {
+      if (value is String) {
+        return DateTime.tryParse(value);
+      }
+      return null;
+    }
+
+    final rawComps = json['components'];
+    final List<BOMComponent> compsList = [];
+    if (rawComps is List) {
+      for (final item in rawComps) {
+        if (item is Map<String, dynamic>) {
+          compsList.add(BOMComponent.fromJson(item));
+        } else if (item is Map) {
+          compsList.add(BOMComponent.fromJson(Map<String, dynamic>.from(item)));
+        }
+      }
+    }
+
+    final rawLogs = json['auditLog'] ?? json['audit_log'];
+    final List<AuditLogEntry> logsList = [];
+    if (rawLogs is List) {
+      for (final item in rawLogs) {
+        if (item is Map<String, dynamic>) {
+          logsList.add(AuditLogEntry.fromJson(item));
+        } else if (item is Map) {
+          logsList.add(AuditLogEntry.fromJson(Map<String, dynamic>.from(item)));
+        }
+      }
+    }
+
+    final rawInstructions = json['buildInstructions'] ?? json['build_instructions'];
+    final List<String> instructionsList = [];
+    if (rawInstructions is List) {
+      for (final item in rawInstructions) {
+        if (item != null) {
+          instructionsList.add(item.toString());
+        }
+      }
+    }
+
+    final rawStores = json['suggestedStores'] ?? json['suggested_stores'];
+    final List<Map<String, dynamic>> storesList = [];
+    if (rawStores is List) {
+      for (final item in rawStores) {
+        if (item is Map<String, dynamic>) {
+          storesList.add(item);
+        } else if (item is Map) {
+          storesList.add(Map<String, dynamic>.from(item));
+        }
+      }
+    }
+
+    return ProjectModel(
+      id: json['id']?.toString() ?? 'proj-${DateTime.now().millisecondsSinceEpoch}',
+      title: json['title']?.toString() ?? 'Untitled Project',
+      category: json['category']?.toString() ?? 'engineering',
+      createdAt: parseDate(json['createdAt'] ?? json['created_at']),
+      deletedAt: parseNullableDate(json['deletedAt'] ?? json['deleted_at']),
+      isOptimized: json['isOptimized'] ?? json['is_optimized'] ?? true,
+      isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,
+      components: compsList,
+      auditLog: logsList,
+      region: json['region']?.toString(),
+      city: json['city']?.toString(),
+      barangay: json['barangay']?.toString(),
+      promptOrUrl: json['promptOrUrl']?.toString() ?? json['prompt_or_url']?.toString(),
+      authorName: json['authorName']?.toString() ?? json['author_name']?.toString(),
+      thumbnailUrl: json['thumbnailUrl']?.toString() ?? json['thumbnail_url']?.toString(),
+      buildInstructions: instructionsList,
+      suggestedStores: storesList,
+    );
+  }
 
   ProjectModel copyWith({
     String? id,
@@ -169,6 +324,7 @@ class ProjectModel {
     String? authorName,
     String? thumbnailUrl,
     List<String>? buildInstructions,
+    List<Map<String, dynamic>>? suggestedStores,
   }) {
     return ProjectModel(
       id: id ?? this.id,
@@ -187,6 +343,7 @@ class ProjectModel {
       authorName: authorName ?? this.authorName,
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
       buildInstructions: buildInstructions ?? List.from(this.buildInstructions),
+      suggestedStores: suggestedStores ?? List.from(this.suggestedStores),
     );
   }
 }

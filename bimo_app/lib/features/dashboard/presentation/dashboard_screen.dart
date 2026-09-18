@@ -11,7 +11,7 @@ import '../../projects/data/project_provider.dart';
 import '../../projects/domain/models.dart';
 
 class DashboardScreen extends ConsumerWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

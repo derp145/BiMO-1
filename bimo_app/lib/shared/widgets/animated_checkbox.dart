@@ -8,11 +8,11 @@ class AnimatedCheckbox extends StatelessWidget {
   final ValueChanged<bool> onChange;
 
   const AnimatedCheckbox({
-    Key? key,
+    super.key,
     required this.label,
     required this.checked,
     required this.onChange,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

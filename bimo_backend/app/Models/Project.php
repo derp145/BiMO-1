@@ -9,6 +9,8 @@ class Project extends Model
     protected $table = 'projects';
 
     public $timestamps = false;
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'id',
@@ -18,6 +20,8 @@ class Project extends Model
         'deleted_at',
         'is_optimized',
         'is_completed',
+        'components',
+        'audit_log',
         'region',
         'city',
         'barangay',
@@ -34,6 +38,8 @@ class Project extends Model
         'deleted_at' => 'datetime',
         'is_optimized' => 'boolean',
         'is_completed' => 'boolean',
+        'components' => 'array',
+        'audit_log' => 'array',
         'build_instructions' => 'array',
         'created_db_at' => 'datetime',
         'updated_at' => 'datetime',
