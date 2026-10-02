@@ -45,7 +45,9 @@ class CompatibilityAlertModal extends StatelessWidget {
                     children: [
                       Text(
                         'HARDWARE LOGIC LEVEL MISMATCH',
-                        style: AppTypography.labelUppercase(color: AppColors.redAlert),
+                        style: AppTypography.labelUppercase(
+                          color: AppColors.redAlert,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -72,7 +74,11 @@ class CompatibilityAlertModal extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.lightbulb_outline_rounded, color: AppColors.emeraldLight, size: 20),
+                  const Icon(
+                    Icons.lightbulb_outline_rounded,
+                    color: AppColors.emeraldLight,
+                    size: 20,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -93,13 +99,19 @@ class CompatibilityAlertModal extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.emerald,
                   foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Understood', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Understood',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],

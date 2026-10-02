@@ -62,17 +62,16 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
           IconButton(
             tooltip: 'Toggle Theme (Light / Dark)',
             icon: Icon(
-              isDark
-                  ? Icons.light_mode_outlined
-                  : Icons.dark_mode_outlined,
+              isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
               size: 22,
               color: isDark
                   ? AppColors.darkTextMuted
                   : AppColors.lightTextMuted,
             ),
             onPressed: () {
-              ref.read(themeModeProvider.notifier).state =
-                  isDark ? ThemeMode.light : ThemeMode.dark;
+              ref.read(themeModeProvider.notifier).state = isDark
+                  ? ThemeMode.light
+                  : ThemeMode.dark;
             },
           ),
         ],

@@ -19,7 +19,9 @@ class BomoAssistant extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1A8A5F) : AppColors.emerald,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.emeraldLight.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: AppColors.emeraldLight.withValues(alpha: 0.3),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.12),

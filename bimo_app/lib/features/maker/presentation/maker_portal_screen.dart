@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/theme/app_colors.dart';
@@ -33,33 +34,94 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
   final TextEditingController _promptController = TextEditingController();
   final TextEditingController _customNameController = TextEditingController();
   final TextEditingController _customSpecController = TextEditingController();
+  final TextEditingController _customPriceController = TextEditingController();
   final TextEditingController _titleController = TextEditingController();
 
   bool _isExtracting = false;
   bool _extractionComplete = false;
   String? _errorMessage;
   bool? _useOptimizedSelection;
-  ProjectModel? _currentProject;
+  String? _currentProjectId;
+  String? _customItemError;
+  String _selectedCustomCategory = 'Hardware';
+
+  ProjectModel? get _currentProject {
+    final state = ref.read(projectsProvider);
+    final projectId = _currentProjectId ?? state.activeProject?.id;
+    if (projectId == null) return null;
+    for (final project in state.projects) {
+      if (project.id == projectId) return project;
+    }
+    return null;
+  }
+
+  bool get _isNewProjectFlow => widget.wizardData?['projectName'] != null;
 
   @override
   void initState() {
     super.initState();
     if (widget.wizardData != null) {
       _inputMode = widget.wizardData!['toolType'] ?? 'text';
+      _currentProjectId = widget.wizardData!['projectId']?.toString();
       if (widget.wizardData!['projectName'] != null) {
         _titleController.text = widget.wizardData!['projectName'];
+      }
+    }
+    _customNameController.addListener(_clearCustomItemErrorIfNeeded);
+    _customSpecController.addListener(_clearCustomItemErrorIfNeeded);
+  }
+
+  void _clearCustomItemErrorIfNeeded() {
+    if (_customItemError != null) {
+      final name = _customNameController.text.trim();
+      final spec = _customSpecController.text.trim();
+      if (name.isNotEmpty && spec.isNotEmpty) {
+        setState(() {
+          _customItemError = null;
+        });
       }
     }
   }
 
   @override
   void dispose() {
+    _customNameController.removeListener(_clearCustomItemErrorIfNeeded);
+    _customSpecController.removeListener(_clearCustomItemErrorIfNeeded);
     _urlController.dispose();
     _promptController.dispose();
     _customNameController.dispose();
     _customSpecController.dispose();
+    _customPriceController.dispose();
     _titleController.dispose();
     super.dispose();
+  }
+
+  Future<void> _confirmDelete(VoidCallback onConfirm) async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Component?'),
+          content: const Text(
+            'Are you sure you want to remove this component from the BOM?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: AppColors.redAlert),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirm == true) {
+      onConfirm();
+    }
   }
 
   void _refreshCurrentProject() {
@@ -73,7 +135,7 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
     if (index == -1 || !mounted) return;
 
     setState(() {
-      _currentProject = state.projects[index];
+      _currentProjectId = state.projects[index].id;
     });
   }
 
@@ -104,27 +166,30 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
     });
 
     try {
-      final isNew = _currentProject == null;
+      final currentProject = _currentProject;
+      final isNew = _isNewProjectFlow || currentProject == null;
       final generatedProject = await ProjectApiService.generateBOM(
-        projectId: _currentProject?.id,
+        projectId: currentProject?.id,
         inputMode: _inputMode,
         input: input,
-        currentProject: _currentProject,
+        currentProject: currentProject,
       );
 
       if (!mounted) return;
 
-      if (isNew) {
-        await ref.read(projectsProvider.notifier).addProject(generatedProject);
-      } else {
-        ref.read(projectsProvider.notifier).updateProject(generatedProject);
-      }
+      final savedProject = isNew
+          ? await ref
+                .read(projectsProvider.notifier)
+                .addProject(generatedProject)
+          : await ref
+                .read(projectsProvider.notifier)
+                .updateProject(generatedProject);
 
-      ref.read(projectsProvider.notifier).setActiveProject(generatedProject);
+      ref.read(projectsProvider.notifier).setActiveProject(savedProject);
 
       setState(() {
-        _currentProject = generatedProject;
-        _titleController.text = generatedProject.title;
+        _currentProjectId = savedProject.id;
+        _titleController.text = savedProject.title;
         _extractionComplete = true;
       });
     } catch (e) {
@@ -174,12 +239,14 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
     return 'Save ${_formatCurrency(savings)} (${percent.toStringAsFixed(0)}%)';
   }
 
-  void _handleSmartDealSelection(bool useOptimized) {
+  Future<void> _handleSmartDealSelection(bool useOptimized) async {
     if (_currentProject == null) return;
 
-    ref
+    await ref
         .read(projectsProvider.notifier)
         .toggleOptimization(_currentProject!.id, useOptimized);
+
+    if (!mounted) return;
 
     final state = ref.read(projectsProvider);
     final index = state.projects.indexWhere(
@@ -189,7 +256,7 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
     if (index == -1 || !mounted) return;
 
     setState(() {
-      _currentProject = state.projects[index];
+      _currentProjectId = state.projects[index].id;
       _useOptimizedSelection = useOptimized;
     });
   }
@@ -429,7 +496,7 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                             trailing: const Icon(Icons.chevron_right_rounded),
                             onTap: () {
                               setState(() {
-                                _currentProject = proj;
+                                _currentProjectId = proj.id;
                                 _titleController.text = proj.title;
                                 _step = 1;
                                 _useOptimizedSelection = null;
@@ -652,13 +719,17 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                                             size: 20,
                                           ),
                                           onPressed: () {
-                                            ref
-                                                .read(projectsProvider.notifier)
-                                                .deleteComponent(
-                                                  _currentProject!.id,
-                                                  idx,
-                                                );
-                                            _refreshCurrentProject();
+                                            _confirmDelete(() {
+                                              ref
+                                                  .read(
+                                                    projectsProvider.notifier,
+                                                  )
+                                                  .deleteComponent(
+                                                    _currentProject!.id,
+                                                    idx,
+                                                  );
+                                              _refreshCurrentProject();
+                                            });
                                           },
                                         ),
                                       ],
@@ -749,13 +820,15 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                                           size: 20,
                                         ),
                                         onPressed: () {
-                                          ref
-                                              .read(projectsProvider.notifier)
-                                              .deleteComponent(
-                                                _currentProject!.id,
-                                                idx,
-                                              );
-                                          _refreshCurrentProject();
+                                          _confirmDelete(() {
+                                            ref
+                                                .read(projectsProvider.notifier)
+                                                .deleteComponent(
+                                                  _currentProject!.id,
+                                                  idx,
+                                                );
+                                            _refreshCurrentProject();
+                                          });
                                         },
                                       ),
                                     ),
@@ -790,65 +863,278 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
+                        TextField(
+                          controller: _customPriceController,
+                          decoration: const InputDecoration(
+                            hintText:
+                                'Estimated Unit Price (\u20B1) (optional)...',
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d{0,2}'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        DropdownButtonFormField<String>(
+                          initialValue: _selectedCustomCategory,
+                          decoration: const InputDecoration(
+                            labelText: 'Category',
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
+                          ),
+                          dropdownColor: isDark
+                              ? AppColors.darkSurface
+                              : AppColors.lightSurface,
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            size: 20,
+                          ),
+                          items: bomCategories.map((cat) {
+                            return DropdownMenuItem<String>(
+                              value: cat,
+                              child: Text(
+                                cat,
+                                style: AppTypography.bodyMedium(isDark),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() => _selectedCustomCategory = val);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 10),
                         ElevatedButton(
                           onPressed: () {
-                            if (_customNameController.text.trim().isNotEmpty) {
+                            final name = _customNameController.text.trim();
+                            final spec = _customSpecController.text.trim();
+                            final priceText = _customPriceController.text
+                                .trim();
+                            final estPrice = priceText.isNotEmpty
+                                ? double.tryParse(priceText)
+                                : null;
+
+                            if (name.isEmpty && spec.isEmpty) {
+                              setState(() {
+                                _customItemError =
+                                    'Please fill in the required fields.';
+                              });
+                              return;
+                            }
+                            if (name.isEmpty) {
+                              setState(() {
+                                _customItemError =
+                                    'Component name is required.';
+                              });
+                              return;
+                            }
+                            if (spec.isEmpty) {
+                              setState(() {
+                                _customItemError = 'Specification is required.';
+                              });
+                              return;
+                            }
+
+                            setState(() {
+                              _customItemError = null;
+                            });
+
+                            if (name.isNotEmpty) {
                               ref
                                   .read(projectsProvider.notifier)
                                   .addCustomComponent(
                                     _currentProject!.id,
-                                    _customNameController.text.trim(),
-                                    _customSpecController.text.trim(),
+                                    name,
+                                    spec,
+                                    category: _selectedCustomCategory,
+                                    estimatedUnitPrice: estPrice,
                                   );
                               _customNameController.clear();
                               _customSpecController.clear();
+                              _customPriceController.clear();
+                              setState(
+                                () => _selectedCustomCategory = 'Hardware',
+                              );
                               _refreshCurrentProject();
                             }
                           },
                           child: const Text('+ Add Item'),
                         ),
+                        if (_customItemError != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            _customItemError!,
+                            style: const TextStyle(
+                              color: AppColors.redAlert,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ],
                     )
                   else
-                    Row(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _customNameController,
-                            decoration: const InputDecoration(
-                              hintText: 'Custom item name...',
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: TextField(
+                                controller: _customNameController,
+                                decoration: const InputDecoration(
+                                  hintText: 'Custom item name...',
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextField(
-                            controller: _customSpecController,
-                            decoration: const InputDecoration(
-                              hintText: 'Custom specs...',
+                            const SizedBox(width: 10),
+                            Expanded(
+                              flex: 3,
+                              child: TextField(
+                                controller: _customSpecController,
+                                decoration: const InputDecoration(
+                                  hintText: 'Custom specs...',
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        ElevatedButton(
-                          onPressed: () {
-                            if (_customNameController.text.trim().isNotEmpty) {
-                              ref
-                                  .read(projectsProvider.notifier)
-                                  .addCustomComponent(
-                                    _currentProject!.id,
-                                    _customNameController.text.trim(),
-                                    _customSpecController.text.trim(),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              flex: 2,
+                              child: TextField(
+                                controller: _customPriceController,
+                                decoration: const InputDecoration(
+                                  hintText: 'Est. Price (\u20B1)...',
+                                ),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'^\d*\.?\d{0,2}'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              flex: 2,
+                              child: DropdownButtonFormField<String>(
+                                isExpanded: true,
+                                initialValue: _selectedCustomCategory,
+                                decoration: const InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 12,
+                                  ),
+                                ),
+                                dropdownColor: isDark
+                                    ? AppColors.darkSurface
+                                    : AppColors.lightSurface,
+                                icon: const Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  size: 20,
+                                ),
+                                items: bomCategories.map((cat) {
+                                  return DropdownMenuItem<String>(
+                                    value: cat,
+                                    child: Text(
+                                      cat,
+                                      style: AppTypography.bodyMedium(isDark),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   );
+                                }).toList(),
+                                onChanged: (val) {
+                                  if (val != null) {
+                                    setState(
+                                      () => _selectedCustomCategory = val,
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            ElevatedButton(
+                              onPressed: () {
+                                final name = _customNameController.text.trim();
+                                final spec = _customSpecController.text.trim();
+                                final priceText = _customPriceController.text
+                                    .trim();
+                                final estPrice = priceText.isNotEmpty
+                                    ? double.tryParse(priceText)
+                                    : null;
 
-                              _refreshCurrentProject();
+                                if (name.isEmpty && spec.isEmpty) {
+                                  setState(() {
+                                    _customItemError =
+                                        'Please fill in the required fields.';
+                                  });
+                                  return;
+                                }
+                                if (name.isEmpty) {
+                                  setState(() {
+                                    _customItemError =
+                                        'Component name is required.';
+                                  });
+                                  return;
+                                }
+                                if (spec.isEmpty) {
+                                  setState(() {
+                                    _customItemError =
+                                        'Specification is required.';
+                                  });
+                                  return;
+                                }
 
-                              _customNameController.clear();
-                              _customSpecController.clear();
-                            }
-                          },
-                          child: const Text('+ Add Item'),
+                                setState(() {
+                                  _customItemError = null;
+                                });
+
+                                if (name.isNotEmpty) {
+                                  ref
+                                      .read(projectsProvider.notifier)
+                                      .addCustomComponent(
+                                        _currentProject!.id,
+                                        name,
+                                        spec,
+                                        category: _selectedCustomCategory,
+                                        estimatedUnitPrice: estPrice,
+                                      );
+
+                                  _refreshCurrentProject();
+
+                                  _customNameController.clear();
+                                  _customSpecController.clear();
+                                  _customPriceController.clear();
+                                  setState(
+                                    () => _selectedCustomCategory = 'Hardware',
+                                  );
+                                }
+                              },
+                              child: const Text('+ Add Item'),
+                            ),
+                          ],
                         ),
+                        if (_customItemError != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            _customItemError!,
+                            style: const TextStyle(
+                              color: AppColors.redAlert,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
 
@@ -1809,18 +2095,37 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                                 SizedBox(
                                   width: double.infinity,
                                   child: StoreMapVisual(
-                                    locationQuery: _currentProject?.city != null && _currentProject!.city!.isNotEmpty
+                                    locationQuery:
+                                        _currentProject?.city != null &&
+                                            _currentProject!.city!.isNotEmpty
                                         ? '${_currentProject!.city}, ${_currentProject!.region ?? 'Philippines'}'
                                         : 'Metro Manila, Philippines',
-                                    markers: _currentProject?.suggestedStores
-                                        .where((store) => store['lat'] != null && store['lng'] != null)
-                                        .map((store) => MapStoreMarker(
-                                              id: store['name'] ?? '',
-                                              title: store['displayName'] ?? store['name'] ?? 'Hardware Store',
-                                              subtitle: store['reason'] ?? store['type'] ?? '',
-                                              position: latlong.LatLng(store['lat'] as double, store['lng'] as double),
-                                            ))
-                                        .toList() ?? [],
+                                    markers:
+                                        _currentProject?.suggestedStores
+                                            .where(
+                                              (store) =>
+                                                  store['lat'] != null &&
+                                                  store['lng'] != null,
+                                            )
+                                            .map(
+                                              (store) => MapStoreMarker(
+                                                id: store['name'] ?? '',
+                                                title:
+                                                    store['displayName'] ??
+                                                    store['name'] ??
+                                                    'Hardware Store',
+                                                subtitle:
+                                                    store['reason'] ??
+                                                    store['type'] ??
+                                                    '',
+                                                position: latlong.LatLng(
+                                                  store['lat'] as double,
+                                                  store['lng'] as double,
+                                                ),
+                                              ),
+                                            )
+                                            .toList() ??
+                                        [],
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -1858,8 +2163,9 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                                             8,
                                           ),
                                           border: Border.all(
-                                            color: AppColors.emerald
-                                                .withValues(alpha: 0.3),
+                                            color: AppColors.emerald.withValues(
+                                              alpha: 0.3,
+                                            ),
                                           ),
                                         ),
                                         child: Text(
@@ -1961,7 +2267,7 @@ class _MakerPortalScreenState extends ConsumerState<MakerPortalScreen> {
                                           ).showSnackBar(
                                             const SnackBar(
                                               content: Text(
-                                                'Saved Plan as Document (PDF/Word)',
+                                                'Document export is not available yet.',
                                               ),
                                             ),
                                           );

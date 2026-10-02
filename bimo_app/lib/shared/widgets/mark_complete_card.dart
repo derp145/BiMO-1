@@ -40,7 +40,7 @@ class MarkCompleteCard extends StatelessWidget {
             children: [
               Switch.adaptive(
                 value: isCompleted,
-              activeThumbColor: AppColors.emeraldLight,
+                activeThumbColor: AppColors.emeraldLight,
                 onChanged: onToggle,
               ),
               SizedBox(width: gap),

@@ -5,11 +5,13 @@ import 'app_header.dart';
 class AppScaffold extends StatefulWidget {
   final Widget body;
   final String title;
+  final Future<bool> Function(String destinationRoute)? onBeforeNavigate;
 
   const AppScaffold({
     super.key,
     required this.body,
     this.title = 'Build Intelligence & Materials Organizer',
+    this.onBeforeNavigate,
   });
 
   @override
@@ -25,13 +27,14 @@ class _AppScaffoldState extends State<AppScaffold> {
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     return Scaffold(
-       key: _scaffoldKey,
+      key: _scaffoldKey,
       body: Row(
         children: [
           // Sidebar
           if (isDesktop)
             AppSidebar(
               isExpanded: _isSidebarExpanded,
+              onBeforeNavigate: widget.onBeforeNavigate,
               onToggle: () {
                 setState(() {
                   _isSidebarExpanded = !_isSidebarExpanded;
@@ -43,18 +46,14 @@ class _AppScaffoldState extends State<AppScaffold> {
           Expanded(
             child: Column(
               children: [
-               AppHeader(
-  title: widget.title,
-  showMenuButton: !isDesktop,
-  onMenuPressed: !isDesktop
-      ? () => _scaffoldKey.currentState?.openDrawer()
-      : null,
-),
-                Expanded(
-                  child: SelectionArea(
-                    child: widget.body,
-                  ),
+                AppHeader(
+                  title: widget.title,
+                  showMenuButton: !isDesktop,
+                  onMenuPressed: !isDesktop
+                      ? () => _scaffoldKey.currentState?.openDrawer()
+                      : null,
                 ),
+                Expanded(child: SelectionArea(child: widget.body)),
               ],
             ),
           ),
@@ -65,6 +64,7 @@ class _AppScaffoldState extends State<AppScaffold> {
           : Drawer(
               child: AppSidebar(
                 isExpanded: true,
+                onBeforeNavigate: widget.onBeforeNavigate,
                 onToggle: () => Navigator.of(context).pop(),
               ),
             ),

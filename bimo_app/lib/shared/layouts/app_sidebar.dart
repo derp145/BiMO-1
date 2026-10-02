@@ -8,8 +8,22 @@ import '../../features/projects/data/project_provider.dart';
 class AppSidebar extends ConsumerWidget {
   final bool isExpanded;
   final VoidCallback onToggle;
+  final Future<bool> Function(String destinationRoute)? onBeforeNavigate;
 
-  const AppSidebar({super.key, required this.isExpanded, required this.onToggle});
+  const AppSidebar({
+    super.key,
+    required this.isExpanded,
+    required this.onToggle,
+    this.onBeforeNavigate,
+  });
+
+  Future<void> _handleNavigate(BuildContext context, String route) async {
+    if (onBeforeNavigate != null) {
+      final allow = await onBeforeNavigate!(route);
+      if (!allow || !context.mounted) return;
+    }
+    context.go(route);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -123,7 +137,7 @@ class AppSidebar extends ConsumerWidget {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 6.0),
                   child: InkWell(
-                    onTap: () => context.go(item.route),
+                    onTap: () => _handleNavigate(context, item.route),
                     borderRadius: BorderRadius.circular(12),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
@@ -190,7 +204,7 @@ class AppSidebar extends ConsumerWidget {
 
           // User Profile Footer
           InkWell(
-            onTap: () => context.go('/settings'),
+            onTap: () => _handleNavigate(context, '/settings'),
             child: Container(
               padding: const EdgeInsets.all(16),
               color: isDark ? AppColors.darkPanel : AppColors.lightPanel,
@@ -203,9 +217,7 @@ class AppSidebar extends ConsumerWidget {
                     radius: 18,
                     backgroundColor: AppColors.emeraldSoft,
                     child: Text(
-                      profile.displayName.isNotEmpty
-                          ? profile.displayName[0].toUpperCase()
-                          : 'B',
+                      profile.avatarInitial,
                       style: const TextStyle(
                         color: AppColors.emeraldLight,
                         fontWeight: FontWeight.bold,

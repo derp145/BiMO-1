@@ -1,0 +1,41 @@
+warning: in the working copy of 'bimo_app/lib/app/router/app_router.dart', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'bimo_app/lib/features/planner/presentation/project_planner_screen.dart', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'bimo_app/lib/features/projects/data/project_provider.dart', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'bimo_app/lib/features/settings/presentation/settings_screen.dart', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'bimo_app/linux/flutter/generated_plugin_registrant.cc', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'bimo_app/linux/flutter/generated_plugins.cmake', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'bimo_app/macos/Flutter/GeneratedPluginRegistrant.swift', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'bimo_app/windows/flutter/generated_plugin_registrant.cc', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'bimo_app/windows/flutter/generated_plugins.cmake', LF will be replaced by CRLF the next time Git touches it
+ bimo_app/lib/app/router/app_router.dart            |   61 [32m+[m[31m-[m
+ bimo_app/lib/app/theme/app_theme.dart              |    5 [32m+[m[31m-[m
+ bimo_app/lib/app/theme/app_typography.dart         |   85 [32m+[m[31m-[m
+ .../maker/presentation/maker_portal_screen.dart    |  464 [32m+++[m[31m-[m
+ .../presentation/project_planner_screen.dart       | 2501 [32m+++++++++++++[m[31m-------[m
+ .../projects/data/project_api_service.dart         |   64 [32m+[m[31m-[m
+ .../features/projects/data/project_provider.dart   |  607 [32m+++[m[31m--[m
+ bimo_app/lib/features/projects/domain/models.dart  |  260 [32m+[m[31m-[m
+ .../saved/presentation/saved_projects_screen.dart  |   13 [32m+[m[31m-[m
+ .../settings/presentation/settings_screen.dart     |  886 [32m++++[m[31m---[m
+ bimo_app/lib/main.dart                             |   11 [32m+[m[31m-[m
+ bimo_app/lib/shared/layouts/app_header.dart        |   11 [32m+[m[31m-[m
+ bimo_app/lib/shared/layouts/app_scaffold.dart      |   24 [32m+[m[31m-[m
+ bimo_app/lib/shared/layouts/app_sidebar.dart       |   24 [32m+[m[31m-[m
+ bimo_app/lib/shared/widgets/animated_checkbox.dart |   12 [32m+[m[31m-[m
+ bimo_app/lib/shared/widgets/bomo_assistant.dart    |    4 [32m+[m[31m-[m
+ .../lib/shared/widgets/compatibility_alert.dart    |   20 [32m+[m[31m-[m
+ .../lib/shared/widgets/mark_complete_card.dart     |    2 [32m+[m[31m-[m
+ bimo_app/lib/shared/widgets/skeleton.dart          |   10 [32m+[m[31m-[m
+ bimo_app/lib/shared/widgets/store_map_visual.dart  |   60 [32m+[m[31m-[m
+ bimo_app/lib/shared/widgets/terminal_loader.dart   |   28 [32m+[m[31m-[m
+ .../linux/flutter/generated_plugin_registrant.cc   |    4 [32m+[m
+ bimo_app/linux/flutter/generated_plugins.cmake     |    1 [32m+[m
+ .../macos/Flutter/GeneratedPluginRegistrant.swift  |    4 [32m+[m
+ bimo_app/pubspec.lock                              |  256 [32m+[m[31m-[m
+ bimo_app/pubspec.yaml                              |    1 [32m+[m
+ bimo_app/test/bom_generation_and_map_test.dart     |  445 [32m++[m[31m--[m
+ .../windows/flutter/generated_plugin_registrant.cc |    3 [32m+[m
+ bimo_app/windows/flutter/generated_plugins.cmake   |    1 [32m+[m
+ bimo_backend/app/Services/OpenAIService.php        |   51 [32m+[m[31m-[m
+ bimo_backend/tests/Feature/AiBomGenerationTest.php |  112 [32m+[m
+ 31 files changed, 4075 insertions(+), 1955 deletions(-)

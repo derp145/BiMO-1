@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../auth/screens/forgot_password_screen.dart';
+import '../../auth/screens/login_screen.dart';
+import '../../auth/screens/signup_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
 import '../../features/wizard/presentation/project_wizard_screen.dart';
 import '../../features/maker/presentation/maker_portal_screen.dart';
@@ -9,39 +13,74 @@ import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/help/presentation/help_about_screen.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/login',
   routes: [
-    GoRoute(path: '/', builder: (context, state) => const DashboardScreen()),
+    GoRoute(
+      path: '/login',
+      pageBuilder: (context, state) => _instantPage(const LoginScreen()),
+    ),
+
+    GoRoute(
+      path: '/signup',
+      pageBuilder: (context, state) => _instantPage(const SignupScreen()),
+    ),
+
+    GoRoute(
+      path: '/forgot-password',
+      pageBuilder: (context, state) =>
+          _instantPage(const ForgotPasswordScreen()),
+    ),
+
+    GoRoute(
+      path: '/',
+      pageBuilder: (context, state) => _instantPage(const DashboardScreen()),
+    ),
+
     GoRoute(
       path: '/wizard',
-      builder: (context, state) => const ProjectWizardScreen(),
+      pageBuilder: (context, state) =>
+          _instantPage(const ProjectWizardScreen()),
     ),
+
     GoRoute(
       path: '/maker',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final extraMap = state.extra is Map<String, dynamic>
             ? state.extra as Map<String, dynamic>
             : null;
-        return MakerPortalScreen(wizardData: extraMap);
+
+        return _instantPage(MakerPortalScreen(wizardData: extraMap));
       },
     ),
+
     GoRoute(
       path: '/planner',
-      builder: (context, state) => const ProjectPlannerScreen(),
+      pageBuilder: (context, state) =>
+          _instantPage(const ProjectPlannerScreen()),
     ),
+
     GoRoute(
       path: '/saved',
-      builder: (context, state) => const SavedProjectsScreen(),
+      pageBuilder: (context, state) =>
+          _instantPage(const SavedProjectsScreen()),
     ),
+
     GoRoute(
       path: '/settings',
-      builder: (context, state) => const SettingsScreen(),
+      pageBuilder: (context, state) => _instantPage(const SettingsScreen()),
     ),
+
     GoRoute(
       path: '/help',
-      builder: (context, state) => const HelpAboutScreen(),
+      pageBuilder: (context, state) => _instantPage(const HelpAboutScreen()),
     ),
   ],
-  errorBuilder: (context, state) =>
-      Scaffold(body: Center(child: Text('Route not found: ${state.uri}'))),
+
+  errorBuilder: (context, state) {
+    return Scaffold(body: Center(child: Text('Route not found: ${state.uri}')));
+  },
 );
+
+NoTransitionPage<void> _instantPage(Widget child) {
+  return NoTransitionPage<void>(child: child);
+}

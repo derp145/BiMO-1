@@ -23,6 +23,7 @@ class _TerminalLoaderState extends State<TerminalLoader> {
   String _statusText = 'Connecting to BiMO AI Extraction Engine...';
   Timer? _timer;
   final Random _random = Random();
+  int _tickCount = 0;
 
   @override
   void initState() {
@@ -34,6 +35,7 @@ class _TerminalLoaderState extends State<TerminalLoader> {
     _timer = Timer.periodic(const Duration(milliseconds: 180), (timer) {
       if (mounted) {
         setState(() {
+          _tickCount++;
           if (_progress < 35) {
             _statusText = 'Analyzing project prompt & architecture...';
             _progress += _random.nextInt(12) + 6;
@@ -41,7 +43,8 @@ class _TerminalLoaderState extends State<TerminalLoader> {
             _statusText = 'Extracting components & checking voltage specs...';
             _progress += _random.nextInt(10) + 4;
           } else if (_progress < 96) {
-            _statusText = 'Structuring Bill of Materials & build instructions...';
+            _statusText =
+                'Structuring Bill of Materials & build instructions...';
             _progress += _random.nextInt(4) + 1;
           } else {
             _progress = 99;
@@ -101,7 +104,9 @@ class _TerminalLoaderState extends State<TerminalLoader> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: isDark ? AppColors.darkPanel : AppColors.lightPanel,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(15),
+              ),
               border: Border(
                 bottom: BorderSide(
                   color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
@@ -124,7 +129,9 @@ class _TerminalLoaderState extends State<TerminalLoader> {
                     'BiMO COMPONENT EXTRACTOR & MATCHING ENGINE',
                     textAlign: TextAlign.center,
                     style: AppTypography.codeFont(
-                      color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                      color: isDark
+                          ? AppColors.darkTextMuted
+                          : AppColors.lightTextMuted,
                       size: 11,
                     ).copyWith(fontWeight: FontWeight.w700, letterSpacing: 1.2),
                   ),
@@ -145,7 +152,9 @@ class _TerminalLoaderState extends State<TerminalLoader> {
                   height: 64,
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0D0D11) : const Color(0xFFF3F4F6),
+                    color: isDark
+                        ? const Color(0xFF0D0D11)
+                        : const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: AppColors.emeraldLight.withValues(alpha: 0.2),
@@ -157,10 +166,12 @@ class _TerminalLoaderState extends State<TerminalLoader> {
                       children: List.generate(5, (index) {
                         return Container(
                           width: 8,
-                          height: 8 + (index % 3) * 12.0,
+                          height: 8 + ((index + _tickCount) % 3) * 12.0,
                           margin: const EdgeInsets.symmetric(horizontal: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.emeraldLight.withValues(alpha: 0.8),
+                            color: AppColors.emeraldLight.withValues(
+                              alpha: 0.8,
+                            ),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         );
@@ -230,10 +241,7 @@ class _TerminalLoaderState extends State<TerminalLoader> {
     return Container(
       width: 10,
       height: 10,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }

@@ -28,26 +28,33 @@ class OpenAIService
 
         $systemPrompt = <<<PROMPT
 You are BiMO's specialized Bill of Materials (BOM) & Hardware Architecture Generator.
-Your task is to analyze the user's project description or tutorial content and generate a structured Bill of Materials (BOM) and step-by-step build instructions.
+Analyze the project to produce a structured BOM, build instructions, and Philippine store suggestions.
 
 RULES:
-1. Extract or determine an accurate, concise project title.
-2. Categorize the project into one of: 'engineering', 'electronics', 'hardware'.
-3. Identify all necessary hardware components, microcontrollers, sensors, actuators, power supplies, and accessories.
-4. Set realistic, practical quantities for each component (minimum 1).
-5. Categorize each component logically (e.g., 'Microcontrollers', 'Sensors', 'Actuators', 'Power', 'Passive Components', 'Hardware', 'Modules', 'Connectivity').
-6. Provide clear, concise technical notes for each component explaining its specific role, operating voltage, or pin interface.
-7. Generate 3 to 6 practical, actionable build instructions in chronological order.
-8. CRITICAL: For each component, set 'options' to an empty array [] unless real supplier data was explicitly provided in the input. NEVER invent fake supplier names, fake store stock, fake prices, or fake match percentages.
-9. Always set 'isBought' to false, 'isCustom' to false, 'actualCost' to null, and 'selectedOptionIndex' to 0.
-10. If existing project data is provided, update and refine the components and instructions rather than needlessly replacing everything.
-11. STORES: Suggest 4 to 6 real Philippine store chains or shops where the project components can be sourced. Use ONLY real, well-known store names that actually exist in the Philippines (e.g., 'PC Express', 'CDR King', 'Wilcon Depot', 'All Home', 'True Value Hardware', 'Automatic Centre', 'Octagon Computer Superstore', 'DataBlitz', 'Electrotek', 'Electronics Warehouse'). Choose stores relevant to the component types needed. Include the store type (e.g., 'electronics', 'hardware', 'specialty').
+1. Extract a clear project title and category ('engineering', 'electronics', or 'hardware').
+2. Identify all needed hardware components with practical quantities (min 1), logical categories, and brief technical notes.
+3. Provide 3-5 concise, sequential build instructions.
+4. Suggest 3-5 real Philippine store chains (e.g., PC Express, Wilcon Depot, CDR King, True Value Hardware, Octagon, Electrotek, Electronics Warehouse) with type ('electronics', 'hardware', or 'specialty') and reason.
+5. Set options to [] (no fake prices or sellers), isBought to false, isCustom to false, selectedOptionIndex to 0.
+6. If existing project data is provided, refine and update it.
 PROMPT;
 
         $userPrompt = "Input Mode: {$inputMode}\nInput Content:\n{$input}";
 
         if (!empty($currentProject)) {
-            $userPrompt .= "\n\nCurrent Existing Project JSON:\n" . json_encode($currentProject);
+            $filteredProject = [
+                'title' => $currentProject['title'] ?? '',
+                'category' => $currentProject['category'] ?? '',
+                'components' => array_map(function ($comp) {
+                    return [
+                        'name' => $comp['local'] ?? $comp['orig'] ?? '',
+                        'qty' => $comp['qty'] ?? 1,
+                        'category' => $comp['category'] ?? '',
+                        'notes' => $comp['notes'] ?? '',
+                    ];
+                }, $currentProject['components'] ?? []),
+            ];
+            $userPrompt .= "\n\nExisting Project:\n" . json_encode($filteredProject);
         }
 
         $jsonSchema = [
@@ -58,38 +65,31 @@ PROMPT;
                 'properties' => [
                     'title' => [
                         'type' => 'string',
-                        'description' => 'A clear, concise title for the project.',
                     ],
                     'category' => [
                         'type' => 'string',
                         'enum' => ['engineering', 'electronics', 'hardware'],
-                        'description' => 'Project category.',
                     ],
                     'buildInstructions' => [
                         'type' => 'array',
-                        'description' => 'Step-by-step instructions to assemble and build the project.',
                         'items' => [
                             'type' => 'string',
                         ],
                     ],
                     'storeSuggestions' => [
                         'type' => 'array',
-                        'description' => 'Real Philippine store chains recommended for sourcing components for this project.',
                         'items' => [
                             'type' => 'object',
                             'properties' => [
                                 'name' => [
                                     'type' => 'string',
-                                    'description' => 'Exact real store chain name (e.g. PC Express, Wilcon Depot, CDR King).',
                                 ],
                                 'type' => [
                                     'type' => 'string',
                                     'enum' => ['electronics', 'hardware', 'specialty'],
-                                    'description' => 'Store category.',
                                 ],
                                 'reason' => [
                                     'type' => 'string',
-                                    'description' => 'One sentence explaining why this store is recommended for this project.',
                                 ],
                             ],
                             'required' => ['name', 'type', 'reason'],
@@ -98,45 +98,35 @@ PROMPT;
                     ],
                     'components' => [
                         'type' => 'array',
-                        'description' => 'List of hardware components required for the Bill of Materials.',
                         'items' => [
                             'type' => 'object',
                             'properties' => [
                                 'orig' => [
                                     'type' => 'string',
-                                    'description' => 'Original component name or generic specification.',
                                 ],
                                 'local' => [
                                     'type' => 'string',
-                                    'description' => 'Localized or standard descriptive component name.',
                                 ],
                                 'notes' => [
                                     'type' => 'string',
-                                    'description' => 'Technical notes, voltage specifications, or wiring tips.',
                                 ],
                                 'qty' => [
                                     'type' => 'integer',
-                                    'description' => 'Quantity needed (minimum 1).',
                                 ],
                                 'selectedOptionIndex' => [
                                     'type' => 'integer',
-                                    'description' => 'Default selected option index (0).',
                                 ],
                                 'isBought' => [
                                     'type' => 'boolean',
-                                    'description' => 'Whether the item has already been purchased (false).',
                                 ],
                                 'isCustom' => [
                                     'type' => 'boolean',
-                                    'description' => 'Whether this is a user-added custom item (false).',
                                 ],
                                 'category' => [
                                     'type' => 'string',
-                                    'description' => 'Component category (e.g. Microcontrollers, Sensors, Power, etc.).',
                                 ],
                                 'options' => [
                                     'type' => 'array',
-                                    'description' => 'Supplier options. Must be empty array [] if no real supplier data exists.',
                                     'items' => [
                                         'type' => 'object',
                                         'properties' => [
@@ -190,6 +180,7 @@ PROMPT;
                         'type' => 'json_schema',
                         'json_schema' => $jsonSchema,
                     ],
+                    'max_completion_tokens' => 2000,
                 ]);
 
             if (!$response->successful()) {

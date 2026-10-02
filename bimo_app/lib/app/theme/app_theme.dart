@@ -44,7 +44,10 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.emeraldLight, width: 1.5),
+          borderSide: const BorderSide(
+            color: AppColors.emeraldLight,
+            width: 1.5,
+          ),
         ),
         hintStyle: AppTypography.bodyMedium(true),
       ),

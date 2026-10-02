@@ -39,9 +39,12 @@ class ProjectApiService {
           return ProjectModel.fromJson(Map<String, dynamic>.from(projData));
         }
       }
-      throw Exception(data['message'] ?? 'Failed to parse generated BOM response.');
+      throw Exception(
+        data['message'] ?? 'Failed to parse generated BOM response.',
+      );
     } else {
-      String errorMessage = 'Failed to generate BOM (HTTP ${response.statusCode})';
+      String errorMessage =
+          'Failed to generate BOM (HTTP ${response.statusCode})';
       try {
         final errData = jsonDecode(response.body);
         if (errData['message'] != null) {
@@ -49,61 +52,6 @@ class ProjectApiService {
         }
       } catch (_) {}
       throw Exception(errorMessage);
-    }
-  }
-
-  static Future<void> createProject(ProjectModel project) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/projects'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: jsonEncode(project.toJson()),
-    );
-
-    if (response.statusCode != 201 && response.statusCode != 200) {
-      throw Exception(
-        'Failed to save project: ${response.statusCode} ${response.body}',
-      );
-    }
-  }
-
-  static Future<void> updateProject(ProjectModel project) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/projects/${project.id}'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: jsonEncode(project.toJson()),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception(
-        'Failed to update project: ${response.statusCode} ${response.body}',
-      );
-    }
-  }
-
-  static Future<List<ProjectModel>> fetchProjects() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/projects'),
-      headers: {
-        'Accept': 'application/json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data is List) {
-        return data
-            .map((item) => ProjectModel.fromJson(item as Map<String, dynamic>))
-            .toList();
-      }
-      return [];
-    } else {
-      throw Exception('Failed to fetch projects: ${response.statusCode}');
     }
   }
 }

@@ -36,7 +36,9 @@ class AnimatedCheckbox extends StatelessWidget {
                 border: Border.all(
                   color: checked
                       ? AppColors.emeraldLight
-                      : (isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+                      : (isDark
+                            ? AppColors.darkTextMuted
+                            : AppColors.lightTextMuted),
                   width: 1.5,
                 ),
               ),
@@ -56,8 +58,12 @@ class AnimatedCheckbox extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                   decoration: checked ? TextDecoration.lineThrough : null,
                   color: checked
-                      ? (isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted)
-                      : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
+                      ? (isDark
+                            ? AppColors.darkTextMuted
+                            : AppColors.lightTextMuted)
+                      : (isDark
+                            ? AppColors.darkTextPrimary
+                            : AppColors.lightTextPrimary),
                 ),
               ),
             ),

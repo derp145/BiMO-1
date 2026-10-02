@@ -123,14 +123,16 @@ class _StoreMapVisualState extends State<StoreMapVisual> {
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? AppColors.emeraldLight
-                                  : (isDark ? AppColors.darkSurface : Colors.white),
+                                  : (isDark
+                                        ? AppColors.darkSurface
+                                        : Colors.white),
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: isSelected
                                     ? Colors.white
                                     : (isDark
-                                        ? AppColors.darkBorder
-                                        : AppColors.lightBorder),
+                                          ? AppColors.darkBorder
+                                          : AppColors.lightBorder),
                                 width: 2,
                               ),
                               boxShadow: [
@@ -161,14 +163,19 @@ class _StoreMapVisualState extends State<StoreMapVisual> {
               top: 12,
               left: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.darkSurface.withValues(alpha: 0.92)
                       : Colors.white.withValues(alpha: 0.92),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    color: isDark
+                        ? AppColors.darkBorder
+                        : AppColors.lightBorder,
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -210,7 +217,10 @@ class _StoreMapVisualState extends State<StoreMapVisual> {
                     icon: Icons.add,
                     onPressed: () {
                       final currentZoom = _mapController.camera.zoom;
-                      _mapController.move(_mapController.camera.center, currentZoom + 1);
+                      _mapController.move(
+                        _mapController.camera.center,
+                        currentZoom + 1,
+                      );
                     },
                     isDark: isDark,
                   ),
@@ -219,7 +229,10 @@ class _StoreMapVisualState extends State<StoreMapVisual> {
                     icon: Icons.remove,
                     onPressed: () {
                       final currentZoom = _mapController.camera.zoom;
-                      _mapController.move(_mapController.camera.center, currentZoom - 1);
+                      _mapController.move(
+                        _mapController.camera.center,
+                        currentZoom - 1,
+                      );
                     },
                     isDark: isDark,
                   ),
@@ -242,14 +255,19 @@ class _StoreMapVisualState extends State<StoreMapVisual> {
                 left: 12,
                 right: 12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: isDark
                         ? AppColors.darkSurface.withValues(alpha: 0.95)
                         : Colors.white.withValues(alpha: 0.95),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder,
                     ),
                     boxShadow: [
                       BoxShadow(
@@ -330,10 +348,11 @@ class _StoreMapVisualState extends State<StoreMapVisual> {
                           children: [
                             Text(
                               _selectedMarker!.title,
-                              style: AppTypography.headingMedium(isDark).copyWith(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: AppTypography.headingMedium(isDark)
+                                  .copyWith(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -349,11 +368,17 @@ class _StoreMapVisualState extends State<StoreMapVisual> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.navigation_rounded, size: 20, color: AppColors.emeraldLight),
+                        icon: const Icon(
+                          Icons.navigation_rounded,
+                          size: 20,
+                          color: AppColors.emeraldLight,
+                        ),
                         onPressed: () async {
                           final lat = _selectedMarker!.position.latitude;
                           final lng = _selectedMarker!.position.longitude;
-                          final uri = Uri.parse('geo:$lat,$lng?q=${Uri.encodeComponent(_selectedMarker!.title)}');
+                          final uri = Uri.parse(
+                            'geo:$lat,$lng?q=${Uri.encodeComponent(_selectedMarker!.title)}',
+                          );
                           if (await canLaunchUrl(uri)) {
                             await launchUrl(uri);
                           }
@@ -397,10 +422,7 @@ class _StoreMapVisualState extends State<StoreMapVisual> {
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         ),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 4,
-          ),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 4),
         ],
       ),
       child: IconButton(

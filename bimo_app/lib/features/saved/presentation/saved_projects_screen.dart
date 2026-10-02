@@ -90,10 +90,15 @@ class _SavedProjectsScreenState extends ConsumerState<SavedProjectsScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.redAlert,
-              foregroundColor: Colors.white,
-            ),
+            style: isHard
+                ? ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.redAlert,
+                    foregroundColor: Colors.white,
+                  )
+                : ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.emeraldSoft,
+                    foregroundColor: AppColors.emeraldLight,
+                  ),
             onPressed: () {
               if (isHard) {
                 ref

@@ -14,14 +14,15 @@ class ComponentOption {
   });
 
   Map<String, dynamic> toJson() => {
-        'type': type,
-        'seller': seller,
-        'stock': stock,
-        'price': price,
-        'match': match,
-      };
+    'type': type,
+    'seller': seller,
+    'stock': stock,
+    'price': price,
+    'match': match,
+  };
 
-  factory ComponentOption.fromJson(Map<String, dynamic> json) => ComponentOption(
+  factory ComponentOption.fromJson(Map<String, dynamic> json) =>
+      ComponentOption(
         type: json['type'] ?? '',
         seller: json['seller'] ?? '',
         stock: (json['stock'] as num?)?.toInt() ?? 0,
@@ -41,66 +42,86 @@ class BOMComponent {
   bool isCustom;
   String category;
   double? actualCost;
+  double? customEstimatedPrice;
 
   BOMComponent({
     required this.orig,
     required this.local,
-    required this.notes,
+    this.notes = '',
     this.qty = 1,
     this.selectedOptionIndex = 0,
-    required this.options,
+    this.options = const [],
     this.isBought = false,
     this.isCustom = false,
     this.category = 'Hardware',
     this.actualCost,
+    this.customEstimatedPrice,
   });
 
   ComponentOption get selectedOption =>
       options.isNotEmpty && selectedOptionIndex < options.length
-          ? options[selectedOptionIndex]
-          : (options.isNotEmpty
-              ? options.first
-              : ComponentOption(
-                  type: 'Standard Option',
-                  seller: '',
-                  stock: 0,
-                  price: 0.0,
-                  match: '100%'));
+      ? options[selectedOptionIndex]
+      : (options.isNotEmpty
+            ? options.first
+            : ComponentOption(
+                type: 'Standard Option',
+                seller: isCustom ? 'Custom Item' : '',
+                stock: 0,
+                price: customEstimatedPrice ?? 0.0,
+                match: '100%',
+              ));
 
-  double get unitPrice => selectedOption.price;
+  double get unitPrice =>
+      options.isNotEmpty ? selectedOption.price : (customEstimatedPrice ?? 0.0);
   double get totalPrice => unitPrice * qty;
+  double? get actualTotal => actualCost == null ? null : actualCost! * qty;
 
   Map<String, dynamic> toJson() => {
-        'orig': orig,
-        'local': local,
-        'notes': notes,
-        'qty': qty,
-        'selectedOptionIndex': selectedOptionIndex,
-        'options': options.map((opt) => opt.toJson()).toList(),
-        'isBought': isBought,
-        'isCustom': isCustom,
-        'category': category,
-        if (actualCost != null) 'actualCost': actualCost,
-      };
+    'orig': orig,
+    'local': local,
+    'notes': notes,
+    'qty': qty,
+    'selectedOptionIndex': selectedOptionIndex,
+    'options': options.map((opt) => opt.toJson()).toList(),
+    'isBought': isBought,
+    'isCustom': isCustom,
+    'category': category,
+    if (actualCost != null) 'actualCost': actualCost,
+    if (customEstimatedPrice != null)
+      'customEstimatedPrice': customEstimatedPrice,
+    if (customEstimatedPrice != null)
+      'custom_estimated_price': customEstimatedPrice,
+  };
 
   factory BOMComponent.fromJson(Map<String, dynamic> json) => BOMComponent(
-        orig: json['orig'] ?? '',
-        local: json['local'] ?? '',
-        notes: json['notes'] ?? '',
-        qty: (json['qty'] as num?)?.toInt() ?? 1,
-        selectedOptionIndex: (json['selectedOptionIndex'] as num?)?.toInt() ??
-            (json['selected_option_index'] as num?)?.toInt() ??
-            0,
-        options: (json['options'] as List<dynamic>?)
-                ?.map((opt) => ComponentOption.fromJson(opt as Map<String, dynamic>))
-                .toList() ??
-            [],
-        isBought: json['isBought'] ?? json['is_bought'] ?? false,
-        isCustom: json['isCustom'] ?? json['is_custom'] ?? false,
-        category: json['category'] ?? 'Hardware',
-        actualCost: (json['actualCost'] as num?)?.toDouble() ??
-            (json['actual_cost'] as num?)?.toDouble(),
-      );
+    orig: json['orig'] ?? '',
+    local: json['local'] ?? '',
+    notes: json['notes'] ?? '',
+    qty: (json['qty'] as num?)?.toInt() ?? 1,
+    selectedOptionIndex:
+        (json['selectedOptionIndex'] as num?)?.toInt() ??
+        (json['selected_option_index'] as num?)?.toInt() ??
+        0,
+    options:
+        (json['options'] as List<dynamic>?)
+            ?.map(
+              (opt) => ComponentOption.fromJson(opt as Map<String, dynamic>),
+            )
+            .toList() ??
+        [],
+    isBought: json['isBought'] ?? json['is_bought'] ?? false,
+    isCustom: json['isCustom'] ?? json['is_custom'] ?? false,
+    category: json['category'] ?? 'Hardware',
+    actualCost:
+        (json['actualCost'] as num?)?.toDouble() ??
+        (json['actual_cost'] as num?)?.toDouble(),
+    customEstimatedPrice:
+        (json['customEstimatedPrice'] as num?)?.toDouble() ??
+        (json['custom_estimated_price'] as num?)?.toDouble() ??
+        ((json['options'] is List && (json['options'] as List).isNotEmpty)
+            ? ((json['options'] as List).first['price'] as num?)?.toDouble()
+            : null),
+  );
 
   BOMComponent copyWith({
     String? orig,
@@ -113,6 +134,7 @@ class BOMComponent {
     bool? isCustom,
     String? category,
     double? actualCost,
+    double? customEstimatedPrice,
   }) {
     return BOMComponent(
       orig: orig ?? this.orig,
@@ -125,8 +147,59 @@ class BOMComponent {
       isCustom: isCustom ?? this.isCustom,
       category: category ?? this.category,
       actualCost: actualCost ?? this.actualCost,
+      customEstimatedPrice: customEstimatedPrice ?? this.customEstimatedPrice,
     );
   }
+}
+
+const List<String> bomCategories = [
+  'Microcontrollers',
+  'Sensors',
+  'Actuators',
+  'Power',
+  'Passive Components',
+  'Hardware',
+  'Modules',
+  'Connectivity',
+  'Other',
+];
+
+String componentIdentity(BOMComponent component) {
+  String normalize(String value) =>
+      value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+
+  // Keep specifications and categories distinct while treating exact name variations as one item.
+  return '${normalize(component.orig)}|${normalize(component.local)}|${normalize(component.notes)}|${normalize(component.category)}';
+}
+
+List<BOMComponent> normalizeComponents(Iterable<BOMComponent> components) {
+  final merged = <String, BOMComponent>{};
+  for (final component in components) {
+    final identity = componentIdentity(component);
+    final existing = merged[identity];
+    if (existing == null) {
+      merged[identity] = component.copyWith(
+        qty: component.qty < 1 ? 1 : component.qty,
+      );
+      continue;
+    }
+
+    merged[identity] = existing.copyWith(
+      qty: existing.qty + (component.qty < 1 ? 1 : component.qty),
+      options: existing.options.isNotEmpty
+          ? existing.options
+          : component.options,
+      selectedOptionIndex: existing.options.isNotEmpty
+          ? existing.selectedOptionIndex
+          : component.selectedOptionIndex,
+      isBought: existing.isBought || component.isBought,
+      isCustom: existing.isCustom || component.isCustom,
+      actualCost: existing.actualCost ?? component.actualCost,
+      customEstimatedPrice:
+          existing.customEstimatedPrice ?? component.customEstimatedPrice,
+    );
+  }
+  return merged.values.toList();
 }
 
 class AuditLogEntry {
@@ -135,15 +208,12 @@ class AuditLogEntry {
 
   AuditLogEntry({required this.action, required this.timestamp});
 
-  Map<String, dynamic> toJson() => {
-        'action': action,
-        'timestamp': timestamp,
-      };
+  Map<String, dynamic> toJson() => {'action': action, 'timestamp': timestamp};
 
   factory AuditLogEntry.fromJson(Map<String, dynamic> json) => AuditLogEntry(
-        action: json['action'] ?? '',
-        timestamp: json['timestamp'] ?? '',
-      );
+    action: json['action'] ?? '',
+    timestamp: json['timestamp'] ?? '',
+  );
 }
 
 class ProjectModel {
@@ -187,8 +257,12 @@ class ProjectModel {
 
   double get baseTotalCost {
     return components.fold(
-        0.0, (sum, comp) => sum + (comp.unitPrice * comp.qty));
+      0.0,
+      (sum, comp) => sum + (comp.unitPrice * comp.qty),
+    );
   }
+
+  double get estimatedCost => baseTotalCost;
 
   double get finalCost {
     return isOptimized ? baseTotalCost * 0.75 : baseTotalCost;
@@ -197,33 +271,33 @@ class ProjectModel {
   int get partsCount => components.length;
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'category': category,
-        'createdAt': createdAt.toIso8601String(),
-        'created_at': createdAt.toIso8601String(),
-        if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
-        if (deletedAt != null) 'deleted_at': deletedAt!.toIso8601String(),
-        'isOptimized': isOptimized,
-        'is_optimized': isOptimized,
-        'isCompleted': isCompleted,
-        'is_completed': isCompleted,
-        'components': components.map((comp) => comp.toJson()).toList(),
-        'auditLog': auditLog.map((log) => log.toJson()).toList(),
-        'audit_log': auditLog.map((log) => log.toJson()).toList(),
-        'region': region,
-        'city': city,
-        'barangay': barangay,
-        'promptOrUrl': promptOrUrl,
-        'prompt_or_url': promptOrUrl,
-        'authorName': authorName,
-        'author_name': authorName,
-        'thumbnail_url': thumbnailUrl,
-        'buildInstructions': buildInstructions,
-        'build_instructions': buildInstructions,
-        'suggestedStores': suggestedStores,
-        'suggested_stores': suggestedStores,
-      };
+    'id': id,
+    'title': title,
+    'category': category,
+    'createdAt': createdAt.toIso8601String(),
+    'created_at': createdAt.toIso8601String(),
+    if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
+    if (deletedAt != null) 'deleted_at': deletedAt!.toIso8601String(),
+    'isOptimized': isOptimized,
+    'is_optimized': isOptimized,
+    'isCompleted': isCompleted,
+    'is_completed': isCompleted,
+    'components': components.map((comp) => comp.toJson()).toList(),
+    'auditLog': auditLog.map((log) => log.toJson()).toList(),
+    'audit_log': auditLog.map((log) => log.toJson()).toList(),
+    'region': region,
+    'city': city,
+    'barangay': barangay,
+    'promptOrUrl': promptOrUrl,
+    'prompt_or_url': promptOrUrl,
+    'authorName': authorName,
+    'author_name': authorName,
+    'thumbnail_url': thumbnailUrl,
+    'buildInstructions': buildInstructions,
+    'build_instructions': buildInstructions,
+    'suggestedStores': suggestedStores,
+    'suggested_stores': suggestedStores,
+  };
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) {
     DateTime parseDate(dynamic value) {
@@ -264,7 +338,8 @@ class ProjectModel {
       }
     }
 
-    final rawInstructions = json['buildInstructions'] ?? json['build_instructions'];
+    final rawInstructions =
+        json['buildInstructions'] ?? json['build_instructions'];
     final List<String> instructionsList = [];
     if (rawInstructions is List) {
       for (final item in rawInstructions) {
@@ -287,21 +362,26 @@ class ProjectModel {
     }
 
     return ProjectModel(
-      id: json['id']?.toString() ?? 'proj-${DateTime.now().millisecondsSinceEpoch}',
+      id:
+          json['id']?.toString() ??
+          'proj-${DateTime.now().millisecondsSinceEpoch}',
       title: json['title']?.toString() ?? 'Untitled Project',
       category: json['category']?.toString() ?? 'engineering',
       createdAt: parseDate(json['createdAt'] ?? json['created_at']),
       deletedAt: parseNullableDate(json['deletedAt'] ?? json['deleted_at']),
       isOptimized: json['isOptimized'] ?? json['is_optimized'] ?? true,
       isCompleted: json['isCompleted'] ?? json['is_completed'] ?? false,
-      components: compsList,
+      components: normalizeComponents(compsList),
       auditLog: logsList,
       region: json['region']?.toString(),
       city: json['city']?.toString(),
       barangay: json['barangay']?.toString(),
-      promptOrUrl: json['promptOrUrl']?.toString() ?? json['prompt_or_url']?.toString(),
-      authorName: json['authorName']?.toString() ?? json['author_name']?.toString(),
-      thumbnailUrl: json['thumbnailUrl']?.toString() ?? json['thumbnail_url']?.toString(),
+      promptOrUrl:
+          json['promptOrUrl']?.toString() ?? json['prompt_or_url']?.toString(),
+      authorName:
+          json['authorName']?.toString() ?? json['author_name']?.toString(),
+      thumbnailUrl:
+          json['thumbnailUrl']?.toString() ?? json['thumbnail_url']?.toString(),
       buildInstructions: instructionsList,
       suggestedStores: storesList,
     );
