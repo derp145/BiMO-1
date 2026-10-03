@@ -178,7 +178,7 @@ class SupabaseProjectRepository implements ProjectRepository {
   }) {
     return {
       'id': project.id,
-      if (userId != null) 'user_id': userId,
+      'user_id': ?userId,
       'title': project.title,
       'category': project.category,
       if (includeCreatedAt)
